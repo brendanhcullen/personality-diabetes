@@ -1,3 +1,5 @@
+set.seed(072219)
+
 packages = c("tidyverse", "dataverse", "data.table")
 lapply(packages, library, character.only = TRUE)
 rm(packages)

@@ -1,9 +1,15 @@
-packages = c("tidyverse")
-
+packages = c("tidyverse", "dataverse", "data.table")
 lapply(packages, library, character.only = TRUE)
+rm(packages)
 
 # load data from Dataverse
-load("~/Google Drive/Work/Research/ongoing/Diabetes x Personality/toy data/sapaTempData696items22dec2015thru07feb2017.RData")
+Sys.setenv("DATAVERSE_SERVER" = "dataverse.harvard.edu")
+dataset4 <- get_dataset("doi:10.7910/DVN/TZJGAT")
+writeBin(get_file("sapaTempData696items22dec2015thru07feb2017.tab", "doi:10.7910/DVN/TZJGAT"), "sapaTempData696items22dec2015thru07feb2017.tab")
+sapaTempData696items22dec2015thru07feb2017 <- fread("sapaTempData696items22dec2015thru07feb2017.tab", na.strings=getOption("<NA>","NA"))
+sapaTempData696items22dec2015thru07feb2017 <- as.data.frame(sapaTempData696items22dec2015thru07feb2017)
+sapaTempData696items22dec2015thru07feb2017 <- subset(sapaTempData696items22dec2015thru07feb2017, select = -c(1))
+rm(dataset4)
 
 # add a diabetes condition variable
   # known rates of diabetes from http://www.diabetes.org/diabetes-basics/statistics/
@@ -24,5 +30,4 @@ toydata = sapaTempData696items22dec2015thru07feb2017 %>%
                             replace = TRUE, 
                             prob = c(p_t1d, p_t2d, p_healthy)))
   
-  
-save(toydata, file = "toy data/toy.Rdata")
+rm(sapaTempData696items22dec2015thru07feb2017)

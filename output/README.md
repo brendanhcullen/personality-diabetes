@@ -1,0 +1,1 @@
+# This directory contains all non-figure objects created by analysis scripts (e.g. processed data, output logs from Talapas). 

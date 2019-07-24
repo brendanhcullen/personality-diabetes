@@ -1,0 +1,1 @@
+# This directory contains figures and tables created by analysis scripts. 

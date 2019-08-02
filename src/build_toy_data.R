@@ -33,6 +33,7 @@ toydata = sapaTempData696items22dec2015thru07feb2017 %>%
                             prob = c(p_t1d, p_t2d, p_healthy)))
   
 rm(sapaTempData696items22dec2015thru07feb2017)
+rm(list = ls(pattern = "p_"))
 
 # remove raw datafile
 file.remove("sapaTempData696items22dec2015thru07feb2017.tab")

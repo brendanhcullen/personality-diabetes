@@ -3,10 +3,10 @@ library(tidyverse)
 library(dataverse)
 library(data.table)
 library(psych)
+library(janitor)
 
 
 # Get data from dataverse -------------------------------------------------
-
 retrieve_data <- function(doi, dataset_name){
   dataset <- get_dataset(doi)
   writeBin(get_file(dataset_name, doi), dataset_name)
@@ -17,8 +17,14 @@ retrieve_data <- function(doi, dataset_name){
   return(dataset)
 }
 
-# Score SPI data ----------------------------------------------------------
+# Convert variables to correct type ---------------------------------------
+fix_var_types <- function(data){
+  fixed_data <- data %>% 
+    mutate_if(is.character, as.factor) # assumes all character vars should be factors--double check!
+  return(fixed_data)
+}
 
+# Score SPI data ----------------------------------------------------------
 score_spi <- function(raw_data) {
   # names of personality vars
   spi_135_items <- raw_data %>% 
@@ -45,5 +51,5 @@ score_spi <- function(raw_data) {
 }
   
 # Test out the functions --------------------------------------------------
-data <- retrieve_data("doi:10.7910/DVN/TZJGAT", "sapaTempData696items22dec2015thru07feb2017.tab")
-scored_data <- score_spi(data)
+#data <- retrieve_data("doi:10.7910/DVN/TZJGAT", "sapaTempData696items22dec2015thru07feb2017.tab")
+#scored_data <- score_spi(data)

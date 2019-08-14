@@ -6,6 +6,7 @@ library(here)
 library(tidyverse)
 library(broom)
 library(effsize)
+library(rsample)
 
 # load cleaned data
 load(here("output/data_cleaned.Rdata"))
@@ -14,6 +15,7 @@ load(here("output/data_cleaned.Rdata"))
 
 # convert to long format and nest
 data_nested <- data_scored %>% 
+  mutate(diagnosis = as.character(diagnosis)) %>% 
   select(-contains("q_")) %>% # remove raw SPI items
   select(-("gender":"p2occIncomeEst")) %>% # remove demographic vars
   gather(-diagnosis, key = trait, value = score) %>% # convert to long format
@@ -43,11 +45,6 @@ t_test_output <- data_nested %>%
   unnest() %>% 
   mutate(p.adj = p.adjust(p.value, method = "holm")) %>% # Holm correction for multiple comparisons
   select(comparison, trait, statistic, p.value, p.adj, cohens_d) # select relevant vars
-
-# for troubleshooting cohen's d calculation (only calculating for every 3rd contrast...)
-t_test_output2 <- data_nested %>% 
-  mutate(cohens_d = map(data, ~effsize::cohen.d(score ~ diagnosis, data = .)) %>% 
-           map_dbl("estimate")) # extract just Cohen's d estimate
 
 
 # Save t-test output ------------------------------------------------------

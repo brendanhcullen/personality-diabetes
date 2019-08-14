@@ -16,7 +16,7 @@ t_test_output <- t_test_output %>%
 # plot results for big 5 traits
 t_test_output %>% 
   filter(trait %in% big5) %>% 
-  ggplot(aes(fct_reorder(trait, statistic), statistic)) +
+  ggplot(aes(trait, cohens_d) +
   geom_point(aes(color = trait), size = 4) +
   coord_flip() + 
   facet_wrap(~comparison) + 
@@ -27,7 +27,7 @@ t_test_output %>%
 t_test_output %>% 
   filter(!trait %in% big5) %>% 
   #ggplot(aes(fct_reorder(trait, cohens_d), cohens_d)) +
-  ggplot(aes(trait, cohens_d)) +
+  ggplot(aes(trait, abs(cohens_d))) +
   geom_point(aes(color = trait), size = 4) +
   coord_flip() + 
   facet_wrap(~comparison) + 

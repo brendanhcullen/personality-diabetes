@@ -46,6 +46,29 @@ t_test_output <- data_nested %>%
   mutate(p.adj = p.adjust(p.value, method = "holm")) %>% # Holm correction for multiple comparisons
   select(comparison, trait, statistic, p.value, p.adj, cohens_d) # select relevant vars
 
+# Bootstrap Cohen's D ----------------------------------------------------
+
+# number of bootstraps
+boot.n = 100
+
+#helper function
+d_boot = function(split){
+  effsize::cohen.d(score ~ diagnosis, data = analysis(split)) 
+  }
+
+d_confidence <- data_nested %>%
+  mutate(boots = map(data, bootstraps, times = boot.n)) %>%
+  mutate(boots = map(boots, .f =  function(x) mutate(x, d = map(splits, d_boot)))) %>% #maps in maps!
+  mutate(boots = map(boots, .f = function(x) mutate(x, d = map_dbl(d, "estimate")))) %>%
+  mutate(boots = map(boots, "d")) %>%
+  unnest(boots) %>%
+  group_by(comparison, trait) %>%
+  summarize(conf_low = quantile(boots, probs = c(.025)),
+            conf_high = quantile(boots, probs = c(.975)))
+
+# add to t-test output
+t_test_output = full_join(t_test_output, d_confidence)
+
 
 # Save t-test output ------------------------------------------------------
 

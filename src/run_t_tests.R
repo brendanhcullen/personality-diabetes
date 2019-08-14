@@ -1,41 +1,50 @@
+# This script takes cleaned and scored SPI data and runs a two-sample t test
+# to compare T1 vs. Healthy, T2 vs. Healthy, and T1 vs. T2 on each 
 
 # load libraries
 library(here)
 library(tidyverse)
 library(broom)
+library(effsize)
 
 # load cleaned data
 load(here("output/data_cleaned.Rdata"))
 
-# Create nested dataframes ------------------------------------------------
+# Wrangle data for iteration ------------------------------------------------
 
 # convert to long format and nest
 data_nested <- data_scored %>% 
   select(-contains("q_")) %>% # remove raw SPI items
   select(-("gender":"p2occIncomeEst")) %>% # remove demographic vars
-  gather(-diagnosis, key = trait, value = score) %>% 
+  gather(-diagnosis, key = trait, value = score) %>% # convert to long format
   group_by(trait) %>% 
   nest()
 
-# organize dataframe to run t-tests
+# organize dataframe by group comparison and trait
 data_nested <- expand.grid(
-  comparison = c("t1.v.healthy", "t2.v.healthy", "t1.v.t2"),
+  comparison = c("t1.v.healthy", "t2.v.healthy", "t1.v.t2"), # create all possible group comparions
   trait = data_nested$trait,
   stringsAsFactors = FALSE) %>% 
-  left_join(data_nested) %>% 
+  left_join(data_nested) %>% # join with nested dataframe
+  # filter nested data frames according to group comparison:
   mutate(data = case_when(comparison == "t1.v.t2" ~ map(data, ~filter(.x, !diagnosis == "healthy")),
                           comparison == "t1.v.healthy" ~ map(data, ~filter(.x, !diagnosis == "t2d")),
                           comparison == "t2.v.healthy" ~ map(data, ~filter(.x, !diagnosis == "t1d"))))
 
 
-
-# Run multiple t-tests ----------------------------------------------------
+# Iterate t-tests ----------------------------------------------------
 
 # run t-test for each personality trait variable
 t_test_output <- data_nested %>% 
-  mutate(t_test = map(data, ~broom::tidy(t.test(score ~ diagnosis, data = .)))) %>% 
+  mutate(t_test = map(data, ~broom::tidy(t.test(score ~ diagnosis, data = .))), # iterate t-tests
+         cohens_d = map(data, ~effsize::cohen.d(score ~ diagnosis, data = .)) %>% # iterate cohen's d
+           map_dbl("estimate")) %>% # extract just Cohen's d estimate from list output
   select(-data) %>% 
-  unnest() 
+  unnest() %>% 
+  mutate(p.adj = p.adjust(p.value, method = "holm")) %>% # Holm correction for multiple comparisons
+  select(comparison, trait, statistic, p.value, p.adj, cohens_d) # select relevant vars
 
-adj_p <- t_test_output %>% 
-  mutate(p.value = p.adjust(p.value, method = "holm"))
+
+t_test_output2 <- data_nested %>% 
+  mutate(cohens_d = map(data, ~effsize::cohen.d(score ~ diagnosis, data = .)) %>% 
+           map_dbl("estimate")) # extract just Cohen's d estimate

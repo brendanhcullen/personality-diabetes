@@ -44,7 +44,12 @@ t_test_output <- data_nested %>%
   mutate(p.adj = p.adjust(p.value, method = "holm")) %>% # Holm correction for multiple comparisons
   select(comparison, trait, statistic, p.value, p.adj, cohens_d) # select relevant vars
 
-
+# for troubleshooting cohen's d calculation (only calculating for every 3rd contrast...)
 t_test_output2 <- data_nested %>% 
   mutate(cohens_d = map(data, ~effsize::cohen.d(score ~ diagnosis, data = .)) %>% 
            map_dbl("estimate")) # extract just Cohen's d estimate
+
+
+# Save t-test output ------------------------------------------------------
+
+save(t_test_output, file = here("output/t_test_output.Rdata"))

@@ -8,29 +8,34 @@ library(tidyverse)
 
 load(here("output/t_test_output.Rdata"))
 
-big5 <- c("open", "consc", "extra", "agree", "neuro")
+# Build plot --------------------------------------------------------------
 
+# set ggplot theme
+theme_set(theme_minimal(base_size = 18))
+
+# wrangle data for plotting
 t_test_output <- t_test_output %>% 
-  mutate(trait = as.factor(trait))
+  mutate(trait = factor(trait) %>% 
+           fct_reorder(cohens_d))
+
+big5 <- c("open", "consc", "extra", "agree", "neuro")
 
 # plot results for big 5 traits
 t_test_output %>% 
   filter(trait %in% big5) %>% 
-  ggplot(aes(trait, cohens_d) +
-  geom_point(aes(color = trait), size = 4) +
-  coord_flip() + 
-  facet_wrap(~comparison) + 
-  theme_minimal() + 
-  theme(legend.position = "none")
-
-# plot results for spi_27 traits
-t_test_output %>% 
-  filter(!trait %in% big5) %>% 
-  #ggplot(aes(fct_reorder(trait, cohens_d), cohens_d)) +
-  ggplot(aes(trait, abs(cohens_d))) +
+  ggplot(aes(trait, cohens_d)) +
+  geom_errorbar(aes(ymin = d_conf_low,
+                    ymax = d_conf_high,
+                    width = 0.15)) +
   geom_point(aes(color = trait), size = 4) +
   coord_flip() + 
   facet_wrap(~comparison) + 
   labs(x = "", y = "Effect size (d)") +
-  theme_minimal() + 
-  theme(legend.position = "none")
+  #theme_minimal(base_size = 17) + 
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank())
+
+
+# Save plot ---------------------------------------------------------------
+
+ggsave("effect_sizes.png", width = 15, height = 10, path = here("figs"))

@@ -49,7 +49,7 @@ t_test_output <- data_nested %>%
 # Bootstrap Cohen's D ----------------------------------------------------
 
 # number of bootstraps
-boot.n = 100
+boot.n = 1000
 
 #helper function
 d_boot = function(split){
@@ -63,8 +63,8 @@ d_confidence <- data_nested %>%
   mutate(boots = map(boots, "d")) %>%
   unnest(boots) %>%
   group_by(comparison, trait) %>%
-  summarize(conf_low = quantile(boots, probs = c(.025)),
-            conf_high = quantile(boots, probs = c(.975)))
+  summarize(d_conf_low = quantile(boots, probs = c(.025)),
+            d_conf_high = quantile(boots, probs = c(.975)))
 
 # add to t-test output
 t_test_output = full_join(t_test_output, d_confidence)

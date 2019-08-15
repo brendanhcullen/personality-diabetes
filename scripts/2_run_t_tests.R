@@ -49,13 +49,15 @@ t_test_output <- data_nested %>%
 # Bootstrap Cohen's D ----------------------------------------------------
 
 # number of bootstraps
-boot.n = 1000
+boot.n = 10
+#boot.n = 1000
 
 #helper function
 d_boot = function(split){
   effsize::cohen.d(score ~ diagnosis, data = analysis(split)) 
   }
 
+# iterate cohen's d confidence intervals
 d_confidence <- data_nested %>%
   mutate(boots = map(data, bootstraps, times = boot.n)) %>%
   mutate(boots = map(boots, .f =  function(x) mutate(x, d = map(splits, d_boot)))) %>% #maps in maps!

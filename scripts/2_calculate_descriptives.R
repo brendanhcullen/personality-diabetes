@@ -1,3 +1,4 @@
+# This script takes cleaned data and calculates descriptive statistics for all variables.
 
 #load packages
 library(here)

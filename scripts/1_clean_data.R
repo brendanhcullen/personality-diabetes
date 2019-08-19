@@ -12,7 +12,9 @@ source(here("src/helper_functions.R"))
 
 # import toydataset to use for writing analysis code
 source(here("src/build_toy_data.R"))
-data <- toydata
+data <- toydata %>% 
+  rownames_to_column() %>% 
+  rename(RID = rowname)
 
 # when importing real dataset use this:
 #data <- retrieve_data("doi:10.7910/DVN/TZJGAT", "sapaTempData696items22dec2015thru07feb2017.tab")

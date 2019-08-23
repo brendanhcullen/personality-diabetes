@@ -96,6 +96,6 @@ save_plot <- function(num_traits) {
          path = here("figs"))
 }
 
-save_plot(5)
+save_plot(spi5)
 save_plot(27)
 

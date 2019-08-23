@@ -2,6 +2,9 @@
 library(here)
 library(tidyverse)
 library(caret)
+library(nnet)
+library(Hmisc)
+library(e1071)
 
 
 # Load data ---------------------------------------------------------------
@@ -14,7 +17,7 @@ set.seed(081919)
 
 # data wrangling
 data_ml <- data_scored %>% 
-  select(c(RID, diagnosis, starts_with("q_"))) %>% 
+  select(c(diagnosis, starts_with("q_"))) %>% 
   mutate(diagnosis = as.factor(diagnosis))
 
 # partition into training (80%) and testing (20%)
@@ -35,10 +38,27 @@ partition2 <- createDataPartition(dev_set$diagnosis,
 training <- dev_set[partition2, ]
 testing <- dev_set[-partition2, ]
 
-kfold <- trainControl(method = "repeatedcv",
-                      number = 10, 
-                      repeats = 10)
+cv <- trainControl(method = "repeatedcv",
+                      number = 2, 
+                      repeats = 2)
+
+# Impute missing data -----------------------------------------------------
+
+# randomly impute for now...update this real imputation code later!
+training <- training %>% 
+  mutate_all(Hmisc::impute, fun = "random") %>% 
+  filter(row_number() %in% sample(1:nrow(.), size = 5000, replace = FALSE))
+  
 
 # Logistic regression -----------------------------------------------------
 
+pmr <- train(diagnosis ~ .,
+      data = training,
+      method = "multinom", 
+      trControl = cv,
+      na.action = "na.exclude")
+
+pmr
+
+summary(pmr)
 

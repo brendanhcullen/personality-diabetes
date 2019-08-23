@@ -9,9 +9,18 @@ library(psych)
 
 load(here("output/data_cleaned.Rdata"))
 
+
 # Calculate descriptives --------------------------------------------------
 
-descriptives <- describeBy(data_scored, group = "diagnosis")
+descriptives <- data_scored %>% 
+  select(-starts_with("q_")) %>% 
+  group_by(diagnosis) %>% 
+  summarise_all(list(~mean(., na.rm = TRUE),
+                     ~sd(., na.rm = TRUE))) %>% 
+  gather(stat, value, -diagnosis) %>% 
+  separate(stat, c("variable", "stat"), sep = "[_$]") # can't figure out this regexp
+
+#descriptives <- describeBy(data_scored, group = "diagnosis")
 
 # Save descriptives output ------------------------------------------------
 

@@ -20,9 +20,15 @@ data <- toydata %>%
 #data <- retrieve_data("doi:10.7910/DVN/TZJGAT", "sapaTempData696items22dec2015thru07feb2017.tab")
 
 
+# Filter data -------------------------------------------------------------
+
+# filter out individuals who did not respond to diabetes question
+data <- data %>% 
+  filter(!is.na(diagnosis))
+
 # Score SPI-135 data ----------------------------------------------------------
 
-data_scored <- scored_data <- score_spi(data)
+data_scored <- score_spi(data)
 
 # Fix variable types ------------------------------------------------------
 

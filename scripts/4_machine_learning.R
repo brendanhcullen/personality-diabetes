@@ -42,21 +42,65 @@ train_control <- trainControl(method = "repeatedcv",
 # manually randomly impute for now. Note: imputation will eventually occur as a "pre-processing" step
 train_data <- train_data %>% 
   mutate_all(Hmisc::impute, fun = "random") %>% 
-  filter(row_number() %in% sample(1:nrow(.), size = 5000, replace = FALSE))
+  filter(row_number() %in% sample(1:nrow(.), size = 2000, replace = FALSE))
+
+test_data <- test_data %>%
+  mutate_all(Hmisc::impute, fun = "random") 
   
 # Logistic regression -----------------------------------------------------
-pmr_grid = expand.grid(decay = seq(from = 0, to = 0.5, by = .1))
+multinom_grid = expand.grid(decay = seq(from = 0, to = 0.5, by = .1))
 
-pmr_fit <- train(diagnosis ~ .,
+set.seed(081919)
+multinom_fit <- train(diagnosis ~ .,
       data = train_data,
       method = "multinom", 
       trControl = train_control,
-      tuneGrid = pmr_grid,
+      tuneGrid = multinom_grid,
       metric = "Kappa") # select the best model based on Kappa
 
-confusionMatrix(pmr_fit)
-
-pmr_fit
+multinom_fit
 
 # info about tuning parameters?
 getModelInfo("multinom", FALSE)[[1]]$grid
+
+
+
+# K-nearest neighbors -----------------------------------------------------
+
+knn_grid = expand.grid(k = seq(from = 1, to = 5, by = 1))
+
+set.seed(081919)
+knn_fit <- train(diagnosis ~ .,
+                      data = train_data,
+                      method = "knn", 
+                      trControl = train_control,
+                      tuneGrid = knn_grid,
+                      metric = "Kappa") # select the best model based on Kappa
+
+knn_fit
+
+
+# Compare models ----------------------------------------------------------
+
+resamps <- resamples(list(multinom = multinom_fit,
+                          knn = knn_fit))
+
+trellis.par.set(trellis.par.get())
+bwplot(resamps, layout = c(2, 1))
+
+trellis.par.set(caretTheme())
+dotplot(resamps, metric = "Kappa")
+
+
+# Evaluate best model on test data ----------------------------------------
+
+# specify which model is superior based on training
+best_model <- multinom_fit$finalModel 
+
+# use model to predict diagnosis values in test data
+predicted <- predict(best_model, test_data)
+
+# confusion matrix
+confusion_matrix <- confusionMatrix(predicted, test_data$diagnosis)
+confusion_matrix$table
+confusion_matrix$byClass

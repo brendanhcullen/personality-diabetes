@@ -48,6 +48,7 @@ test_data <- test_data %>%
   mutate_all(Hmisc::impute, fun = "random") 
   
 # Logistic regression -----------------------------------------------------
+
 multinom_grid = expand.grid(decay = seq(from = 0, to = 0.5, by = .1))
 
 set.seed(081919)
@@ -59,10 +60,6 @@ multinom_fit <- train(diagnosis ~ .,
       metric = "Kappa") # select the best model based on Kappa
 
 multinom_fit
-
-# info about tuning parameters?
-getModelInfo("multinom", FALSE)[[1]]$grid
-
 
 
 # K-nearest neighbors -----------------------------------------------------
@@ -80,14 +77,34 @@ knn_fit <- train(diagnosis ~ .,
 knn_fit
 
 
+# Neural net --------------------------------------------------------------
+
+nnet_grid = expand.grid(size = seq(from = 1, to = 10, by = 1),
+                        decay = seq(from = 0.1, to = 0.5, by = 0.1))
+
+set.seed(081919)
+nnet_fit <- train(diagnosis ~ .,
+                 data = train_data,
+                 method = "nnet", 
+                 trControl = train_control,
+                 tuneGrid = nnet_grid,
+                 metric = "Kappa") # select the best model based on Kappa
+
+nnet_fit
+
+
 # Compare models ----------------------------------------------------------
 
+# list different algorithms that have been trained
 resamps <- resamples(list(multinom = multinom_fit,
-                          knn = knn_fit))
+                          knn = knn_fit,
+                          nnet = nnet_fit))
 
+# plot accuracy and kappa 
 trellis.par.set(trellis.par.get())
 bwplot(resamps, layout = c(2, 1))
 
+# plot kappa only
 trellis.par.set(caretTheme())
 dotplot(resamps, metric = "Kappa")
 

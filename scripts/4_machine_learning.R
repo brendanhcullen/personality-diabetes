@@ -94,11 +94,12 @@ nnet_fit
 
 
 # Compare models ----------------------------------------------------------
+model_list = list(multinom = multinom_fit,
+                  knn = knn_fit,
+                  nnet = nnet_fit)
 
 # list different algorithms that have been trained
-resamps <- resamples(list(multinom = multinom_fit,
-                          knn = knn_fit,
-                          nnet = nnet_fit))
+resamps <- resamples(model_list)
 
 # plot accuracy and kappa 
 trellis.par.set(trellis.par.get())
@@ -108,11 +109,27 @@ bwplot(resamps, layout = c(2, 1))
 trellis.par.set(caretTheme())
 dotplot(resamps, metric = "Kappa")
 
+# Identify best model -----------------------------------------------------
+
+model.df = data.frame(model = names(model_list), stringsAsFactors = FALSE)
+model.df$output = model_list
+
+model.df = model.df %>%
+  mutate(results = map(output, "results")) %>%
+  mutate(Kappa = map(results, "Kappa")) %>%
+  mutate(Kappa = map_dbl(Kappa, max, na.rm = TRUE)) %>%
+  dplyr::select(model, Kappa) %>%
+  arrange(desc(Kappa))
+
+best_model = get(paste0(model.df$model[[1]], "_fit"))
+
+cat("The best model is", model.df$model[1], "with tuning parameter(s) of")
+best_model$bestTune
 
 # Evaluate best model on test data ----------------------------------------
 
 # specify which model is superior based on training
-best_model <- multinom_fit$finalModel 
+best_model = best_model$finalModel
 
 # use model to predict diagnosis values in test data
 predicted <- predict(best_model, test_data)

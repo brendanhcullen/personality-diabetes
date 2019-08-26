@@ -45,17 +45,18 @@ train_data <- train_data %>%
   filter(row_number() %in% sample(1:nrow(.), size = 5000, replace = FALSE))
   
 # Logistic regression -----------------------------------------------------
-pmr_grid = expand.grid(decay = seq(from = 0, to = .5, by = .1))
+pmr_grid = expand.grid(decay = seq(from = 0, to = 0.5, by = .1))
 
 pmr_fit <- train(diagnosis ~ .,
       data = train_data,
       method = "multinom", 
       trControl = train_control,
       tuneGrid = pmr_grid,
-      metric = "Kappa")
+      metric = "Kappa") # select the best model based on Kappa
 
 confusionMatrix(pmr_fit)
 
-pmr_fit$finalModel
+pmr_fit
 
-
+# info about tuning parameters?
+getModelInfo("multinom", FALSE)[[1]]$grid

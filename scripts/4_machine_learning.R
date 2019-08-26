@@ -34,7 +34,7 @@ test_data <- data_ml[-partition, ] # holdout test data. Don't use this until eva
 train_control <- trainControl(method = "repeatedcv",
                    number = 2, # number of folds = 10
                    repeats = 2, # cross-validation is repeated 10 times
-                   sampling = "up", # use for resolving class imbalances (up, down, smote) 
+                   sampling = "smote", # use for resolving class imbalances
                    returnResamp = "final") # only return final 
 
 # Impute missing data -----------------------------------------------------

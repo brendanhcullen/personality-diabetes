@@ -1,8 +1,9 @@
 library(here)
 library(tidyverse)
+library(caret)
 
 # load in list of trained models
-load(here("output/ml_training/trained_models.Rdata"))
+load(here("output/machine_learning/trained_models.Rdata"))
 
 resamps <- resamples(trained_models)
 
@@ -26,15 +27,16 @@ model.df_kappas = model.df %>%
   dplyr::select(model, Kappa) %>%
   arrange(desc(Kappa))
 
-best_model = model.df_kappas$model[[1]]
+best_model_name = model.df_kappas$model[[1]] # model with largest Kappa
 
-best_model = model.df %>% 
-  filter(model == best_model) %>% 
-  select(output)
+best_model = trained_models[[best_model_name]]
 
 
-
-cat("The best model is", model.df$model[1], "with tuning parameter(s) of")
+cat("The best model is", best_model_name, "with tuning parameter(s) of")
 best_model$bestTune
 
+
+# Save best model ---------------------------------------------------------
+
+save(best_model, file = here("output/machine_learning/best_model.Rdata"))
     

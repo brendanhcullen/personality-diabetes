@@ -34,8 +34,10 @@ test_data <- data_ml[-partition, ] # holdout test data. Don't use this until eva
 train_control <- trainControl(method = "repeatedcv",
                    number = 2, # number of folds = 10
                    repeats = 2, # cross-validation is repeated 10 times
-                   #sampling = "smote", # use for resolving class imbalances
+                   sampling = "smote", # use for resolving class imbalances
                    returnResamp = "final") # only return results of final model
+
+rm(data_ml, data_scored, partition)
 
 # Impute missing data -----------------------------------------------------
 
@@ -46,51 +48,23 @@ train_data <- train_data %>%
 
 test_data <- test_data %>%
   mutate_all(Hmisc::impute, fun = "random") 
-  
-# Logistic regression -----------------------------------------------------
+
+# Save test data ----------------------------------------------------------
+
+# keep test data separate for later model evaluation
+save(test_data, file = here("output/machine_learning/test_data.Rdata"))
+
+rm(test_data)
+
+# Specify tuning grids ----------------------------------------------------
 
 multinom_grid = expand.grid(decay = seq(from = 0, to = 0.5, by = .1))
 
-set.seed(081919)
-multinom_fit <- train(diagnosis ~ .,
-      data = train_data,
-      method = "multinom", 
-      trControl = train_control,
-      tuneGrid = multinom_grid,
-      metric = "Kappa") # select the best model based on Kappa
-
-multinom_fit
-
-
-# K-nearest neighbors -----------------------------------------------------
-
 knn_grid = expand.grid(k = seq(from = 1, to = 5, by = 1))
-
-set.seed(081919)
-knn_fit <- train(diagnosis ~ .,
-                      data = train_data,
-                      method = "knn", 
-                      trControl = train_control,
-                      tuneGrid = knn_grid,
-                      metric = "Kappa") # select the best model based on Kappa
-
-knn_fit
-
-
-# Neural net --------------------------------------------------------------
 
 nnet_grid = expand.grid(size = seq(from = 1, to = 10, by = 1),
                         decay = seq(from = 0.1, to = 0.5, by = 0.1))
 
-set.seed(081919)
-nnet_fit <- train(diagnosis ~ .,
-                 data = train_data,
-                 method = "nnet", 
-                 trControl = train_control,
-                 tuneGrid = nnet_grid,
-                 metric = "Kappa") # select the best model based on Kappa
-
-nnet_fit
 
 
 

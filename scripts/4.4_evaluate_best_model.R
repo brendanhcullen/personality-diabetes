@@ -2,11 +2,12 @@
 
 # Load holdout test data --------------------------------------------------
 
-
+load(here("output/machine_learning/best_model.Rdata"))
+load(here("output/machine_learning/test_data.Rdata"))
 
 # Evaluate best model on test data ----------------------------------------
 
-# specify which model is superior based on training
+# pull out final model
 best_model = best_model$finalModel
 
 # use model to predict diagnosis values in test data

@@ -1,5 +1,6 @@
 
 
+source(here("scripts/4.1_prep_for_training.R"))
 
 # Train models ------------------------------------------------------------
 
@@ -24,10 +25,11 @@ run_training <- function(model_name, tuning_grid) {
  
 # train the models
 trained_models = map2(model_list, tuning_list, run_training)
-names(trained_models) <- model_list
 
+# name each model in output list
+names(trained_models) <- model_list
 
 # Save model output -------------------------------------------------------
 
 # save list of trained models
-save(trained_models, file = here("output/ml_training/trained_models.Rdata"))
+save(trained_models, file = here("output/machine_learning/trained_models.Rdata"))

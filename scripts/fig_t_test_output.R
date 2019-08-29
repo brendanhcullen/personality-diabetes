@@ -14,12 +14,12 @@ load(here("output/t_test_output.Rdata"))
 theme_set(theme_minimal(base_size = 18))
 
 # wrangle data for plotting
-t_test_output <- t_test_output %>% 
+t_test_output = t_test_output %>% 
   mutate(trait = factor(trait) %>% 
            fct_reorder(cohens_d))
 
-spi5 <- c("open", "consc", "extra", "agree", "neuro")
-spi27 <- c(
+spi5 = c("open", "consc", "extra", "agree", "neuro")
+spi27 = c(
   "compassion",
   "trust",
   "honesty",
@@ -64,14 +64,14 @@ t_test_output %>%
         panel.grid.minor = element_blank())
 
 
-plot_d <- function(spi_traits) {
-  plot <- t_test_output %>% 
+plot_d = function(spi_traits) {
+  plot = t_test_output %>% 
   filter(trait %in% spi_traits) %>% 
   ggplot(aes(trait, cohens_d)) +
   geom_errorbar(aes(ymin = d_conf_low,
                     ymax = d_conf_high,
                     width = 0.15)) +
-  geom_point(aes(color = trait), size = 4) +
+  geom_point(aes(color = trait), size = 3) +
   coord_flip() + 
   facet_wrap(~comparison) + 
   labs(x = "", y = "Effect size (d)") +
@@ -81,13 +81,13 @@ plot_d <- function(spi_traits) {
   return(plot)
 }
 
-spi5_plot <- plot_d(spi5)
-spi27_plot <- plot_d(spi27)
+spi5_plot = plot_d(spi5)
+spi27_plot = plot_d(spi27)
 
 # Save plot ---------------------------------------------------------------
 
-save_plot <- function(num_traits) {
- # plot <- paste0("spi", num_traits, "_plot")
+save_plot = function(num_traits) {
+ # plot = paste0("spi", num_traits, "_plot")
   
   ggsave(paste0("spi_", num_traits, "_effsizes", ".png"),
          plot = get(paste0("spi", num_traits, "_plot")),
@@ -96,6 +96,6 @@ save_plot <- function(num_traits) {
          path = here("figs"))
 }
 
-save_plot(spi5)
+save_plot(5)
 save_plot(27)
 

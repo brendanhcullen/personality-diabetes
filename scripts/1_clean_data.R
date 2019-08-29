@@ -15,23 +15,23 @@ source(here("src/helper_functions.R"))
 
 # import toydataset to use for writing analysis code
 source(here("src/build_toy_data.R"))
-data <- toydata %>% 
+data = toydata %>% 
   rownames_to_column() %>% 
   rename(RID = rowname)
 
 # when importing real dataset use this:
-#data <- retrieve_data("doi:10.7910/DVN/TZJGAT", "sapaTempData696items22dec2015thru07feb2017.tab")
+#data = retrieve_data("doi:10.7910/DVN/TZJGAT", "sapaTempData696items22dec2015thru07feb2017.tab")
 
 
 # Filter data -------------------------------------------------------------
 
 # remove who did not respond to diabetes question
-data <- data %>% 
+data = data %>% 
   filter(!is.na(diagnosis))
 
 # Score SPI-135 data ----------------------------------------------------------
 
-#data_scored <- score_spi(data)
+#data_scored = score_spi(data)
 
 keys = read.table(url("https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/TZJGAT/YGMHBT"), 
                   header = TRUE, 
@@ -53,7 +53,7 @@ data_scored = cbind(data, scored$scores)
 # Fix variable types ------------------------------------------------------
 
 # change char vars to factors 
-data_scored <- fix_var_types(data_scored)
+data_scored = fix_var_types(data_scored)
 
 
 # Save cleaned data -------------------------------------------------------

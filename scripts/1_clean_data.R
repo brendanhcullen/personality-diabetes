@@ -4,6 +4,10 @@
 # 3) create composite demographic variables???
 # 4) impute missing data???
 
+library(here)
+library(tidyverse)
+library(psych)
+
 # import helper functions
 source(here("src/helper_functions.R"))
 
@@ -27,11 +31,24 @@ data <- data %>%
 
 # Score SPI-135 data ----------------------------------------------------------
 
-data_scored <- score_spi(data)
+#data_scored <- score_spi(data)
 
 keys = read.table(url("https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/TZJGAT/YGMHBT"), 
                   header = TRUE, 
                   row.names = 1)
+
+# select just the rows that correspond to variables in the current SAPA dataset
+keys = keys[names(data), ]
+
+# select just the scales that are scored using the SPI_135 form
+keys = keys %>%
+  select(contains("SPI_135"))
+
+# score the items (this contains item and scale statistics too!)
+scored = scoreItems(keys, data)
+
+# add scores to data
+data_scored = cbind(data, scored$scores)
 
 # Fix variable types ------------------------------------------------------
 

@@ -7,7 +7,6 @@
 # import helper functions
 source(here("src/helper_functions.R"))
 
-
 # Import data -------------------------------------------------------------
 
 # import toydataset to use for writing analysis code
@@ -22,13 +21,17 @@ data <- toydata %>%
 
 # Filter data -------------------------------------------------------------
 
-# filter out individuals who did not respond to diabetes question
+# remove who did not respond to diabetes question
 data <- data %>% 
   filter(!is.na(diagnosis))
 
 # Score SPI-135 data ----------------------------------------------------------
 
 data_scored <- score_spi(data)
+
+keys = read.table(url("https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/TZJGAT/YGMHBT"), 
+                  header = TRUE, 
+                  row.names = 1)
 
 # Fix variable types ------------------------------------------------------
 

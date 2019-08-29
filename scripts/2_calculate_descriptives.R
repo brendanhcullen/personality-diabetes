@@ -12,7 +12,7 @@ load(here("output/data_cleaned.Rdata"))
 
 # Calculate descriptives --------------------------------------------------
 
-descriptives <- data_scored %>% 
+descriptives = data_scored %>% 
   select(-starts_with("q_")) %>% 
   group_by(diagnosis) %>% 
   summarise_all(list(~mean(., na.rm = TRUE),
@@ -20,7 +20,7 @@ descriptives <- data_scored %>%
   gather(stat, value, -diagnosis) %>% 
   separate(stat, c("variable", "stat"), sep = "[_$]") # can't figure out this regexp
 
-#descriptives <- describeBy(data_scored, group = "diagnosis")
+#descriptives = describeBy(data_scored, group = "diagnosis")
 
 # Save descriptives output ------------------------------------------------
 

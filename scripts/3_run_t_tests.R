@@ -14,16 +14,16 @@ load(here("output/data_cleaned.Rdata"))
 # Wrangle data for iteration ------------------------------------------------
 
 # convert to long format and nest
-data_nested <- data_scored %>% 
+data_nested = data_scored %>% 
   mutate(diagnosis = as.character(diagnosis)) %>% 
   select(-contains("q_")) %>% # remove raw SPI items
-  select(-("gender":"p2occIncomeEst")) %>% # remove demographic vars
+  select(-("rid":"p2occ_income_est")) %>% # remove demographic vars
   gather(-diagnosis, key = trait, value = score) %>% # convert to long format
   group_by(trait) %>% 
   nest()
 
 # organize dataframe by group comparison and trait
-data_nested <- expand.grid(
+data_nested = expand.grid(
   comparison = c("t1.v.healthy", "t2.v.healthy", "t1.v.t2"), # create all possible group comparions
   trait = data_nested$trait,
   stringsAsFactors = FALSE) %>% 
@@ -37,7 +37,7 @@ data_nested <- expand.grid(
 # Iterate t-tests ----------------------------------------------------
 
 # run t-test for each personality trait variable
-t_test_output <- data_nested %>% 
+t_test_output = data_nested %>% 
   mutate(t_test = map(data, ~broom::tidy(t.test(score ~ diagnosis, data = .))), # iterate t-tests
          cohens_d = map(data, ~effsize::cohen.d(score ~ diagnosis, data = .)) %>% # iterate cohen's d
            map_dbl("estimate")) %>% # extract just Cohen's d estimate from list output
@@ -58,14 +58,14 @@ d_boot = function(split){
   }
 
 # iterate cohen's d confidence intervals
-d_confidence <- data_nested %>%
+d_confidence = data_nested %>%
   mutate(boots = map(data, bootstraps, times = boot.n)) %>%
   mutate(boots = map(boots, .f =  function(x) mutate(x, d = map(splits, d_boot)))) %>% #maps in maps!
   mutate(boots = map(boots, .f = function(x) mutate(x, d = map_dbl(d, "estimate")))) %>%
   mutate(boots = map(boots, "d")) %>%
   unnest(boots) %>%
   group_by(comparison, trait) %>%
-  summarize(d_conf_low = quantile(boots, probs = c(.025)),
+  dplyr::summarise(d_conf_low = quantile(boots, probs = c(.025)),
             d_conf_high = quantile(boots, probs = c(.975)))
 
 # add to t-test output

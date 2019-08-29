@@ -7,6 +7,7 @@
 library(here)
 library(tidyverse)
 library(psych)
+library(janitor)
 
 # import helper functions
 source(here("src/helper_functions.R"))
@@ -15,13 +16,13 @@ source(here("src/helper_functions.R"))
 
 # import toydataset to use for writing analysis code
 source(here("src/build_toy_data.R"))
+
 data = toydata %>% 
   rownames_to_column() %>% 
   rename(RID = rowname)
 
 # when importing real dataset use this:
 #data = retrieve_data("doi:10.7910/DVN/TZJGAT", "sapaTempData696items22dec2015thru07feb2017.tab")
-
 
 # Filter data -------------------------------------------------------------
 
@@ -46,9 +47,16 @@ keys = keys %>%
 
 # score the items (this contains item and scale statistics too!)
 scored = scoreItems(keys, data)
+spi_scores = as.data.frame(scored$scores)
+names(spi_scores) = gsub("SPI_135_27_5_", "", names(spi_scores))
 
 # add scores to data
-data_scored = cbind(data, scored$scores)
+data_scored = cbind(data, spi_scores) %>% 
+  clean_names()
+
+spi_names = gsub("SPI_135_27_5_", "", names(keys))
+spi_5_names = spi_names[1:5]
+spi_27_names = spi_names[6:32]
 
 # Fix variable types ------------------------------------------------------
 

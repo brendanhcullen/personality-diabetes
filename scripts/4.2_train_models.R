@@ -1,4 +1,11 @@
 
+library(here)
+library(tidyverse)
+library(caret)
+library(nnet)
+library(Hmisc)
+library(e1071)
+library(DMwR) # for smote sampling
 
 source(here("scripts/4.1_prep_for_training.R"))
 
@@ -11,9 +18,9 @@ model_list = list("multinom", "knn", "nnet")
 tuning_list = map(model_list, ~get(paste0(.x, "_grid")))
 
 # function to train models automatically
-run_training <- function(model_name, tuning_grid) {
+run_training = function(model_name, tuning_grid) {
   set.seed(081919)
-  model <- train(diagnosis ~ .,
+  model = train(diagnosis ~ .,
                  data = train_data,
                  method = model_name, 
                  trControl = train_control,
@@ -27,7 +34,7 @@ run_training <- function(model_name, tuning_grid) {
 trained_models = map2(model_list, tuning_list, run_training)
 
 # name each model in output list
-names(trained_models) <- model_list
+names(trained_models) = model_list
 
 # Save model output -------------------------------------------------------
 

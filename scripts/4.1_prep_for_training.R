@@ -5,6 +5,7 @@
 library(here)
 library(tidyverse)
 library(caret)
+library(janitor)
 
 # Load data ---------------------------------------------------------------
 
@@ -14,11 +15,35 @@ set.seed(081919)
 
 # Wrangle data and partition -----------------------------------------------
 
-# data wrangling
-data_ml = data_scored %>% 
-  select(c(diagnosis, starts_with("q_"))) %>% 
+# get SPI names
+keys = read.table(url("https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/TZJGAT/YGMHBT"), 
+                  header = TRUE, 
+                  row.names = 1)
+
+keys = keys[names(data_scored), ] %>% 
+  clean_names() %>% 
+  select(contains("spi_135")) %>% 
+  names()
+
+spi_names = gsub("spi_135_27_5_", "", keys)
+spi_5_names = spi_names[1:5]
+spi_27_names = spi_names[6:32]
+rm(keys, spi_names)
+
+# convert diagnosis to a factor
+data_scored = data_scored %>% 
   mutate(diagnosis = as.factor(diagnosis))
 
+# create 3 datasets 
+data_spi135 = data_scored %>% 
+  select(diagnosis, starts_with("q_"))
+
+data_spi5 = data_scored %>% 
+  select(diagnosis, spi_5_names)
+
+data_spi27 = data_scored %>% 
+  select(diagnosis, spi_27_names)
+ 
 # partition into training (80%) and testing (20%)
 partition = createDataPartition(data_ml$diagnosis,
                                    times = 1,

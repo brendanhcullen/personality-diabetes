@@ -110,7 +110,7 @@ spi_dataset_names = c("spi_5", "spi_27", "spi_135")
 
 train_master_df = train_master_df %>% 
   mutate(spi_scoring = rep(spi_dataset_names, each = nrow(.)/length(spi_dataset_names))) %>% 
-  mutate(data = rep(map(train_test_splits, "train"), each = nrow(.)/length(spi_dataset_names)))
+  mutate(train_data = rep(map(train_test_splits, "train"), each = nrow(.)/length(spi_dataset_names)))
 
 # Save test data ----------------------------------------------------------
 

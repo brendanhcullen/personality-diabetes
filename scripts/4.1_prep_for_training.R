@@ -34,12 +34,12 @@ rm(keys, spi_names)
 data_scored = data_scored %>% 
   mutate(diagnosis = as.factor(diagnosis))
 
-# create 3 datasets 
-datasets = list(data_spi5 = data_scored %>% 
+# create 3 spi datasets for training
+datasets = list(data_spi_5 = data_scored %>% 
   select(diagnosis, spi_5_names),
-  data_spi27 = data_scored %>% 
+  data_spi_27 = data_scored %>% 
   select(diagnosis, spi_27_names),
-  data_spi135 = data_scored %>% 
+  data_spi_135 = data_scored %>% 
     select(diagnosis, starts_with("q_")))
 
 # function to split datasets into training and testing
@@ -50,50 +50,37 @@ partition_spi_data = function(dataset) {
                       p = .8,
                       list = FALSE)
   
-  train_data = dataset[partition, ] # training data (note: this will be iteratively split into train and validation sets during k-fold cross-validation.)
-  test_data = dataset[-partition, ] # holdout test data. Don't use this until evaluating final model performance.
+  train_data = dataset[partition, ] # training data 
+  test_data = dataset[-partition, ] # holdout test data
   
-  dataset_name = deparse(substitute(dataset))
-  tag = gsub(".*_", "", dataset_name)
-  train_name = paste("train", tag, sep = "_")
-  test_name = paste("test", tag, sep = "_")
-  
-  partitioned_data = list(train_data, test_data)
-  names(partitioned_data) = c(train_name, test_name)
-  
+  partitioned_data = list(train = train_data, test = test_data)
+
   return(partitioned_data)
 }
  
+# partition the 3 datasets
+train_test_splits = map(datasets, partition_spi_data)
 
-splits = map(list(data_spi5, data_spi27, data_spi135), ~partition_spi_data(.x))
-
-# partition into training (80%) and testing (20%)
-partition = createDataPartition(data_ml$diagnosis,
-                                   times = 1,
-                                   p = .8,
-                                   list = FALSE)
-
-train_data = data_ml[partition, ] # training data (note: this will be iteratively split into train and validation sets during k-fold cross-validation.)
-test_data = data_ml[-partition, ] # holdout test data. Don't use this until evaluating final model performance.
-
-# specify cross-validation and resampling parameters
-train_control = trainControl(method = "repeatedcv",
-                   number = 2, # number of folds = 10
-                   repeats = 2, # cross-validation is repeated 10 times
-                   sampling = "smote", # use for resolving class imbalances
-                   returnResamp = "final") # only return results of final model
-
-rm(data_ml, data_scored, partition)
 
 # Impute missing data -----------------------------------------------------
 
 # manually randomly impute for now. Note: imputation will eventually occur as a "pre-processing" step
-train_data = train_data %>% 
+train_test_splits$data_spi_135$train = train_test_splits$data_spi_135$train %>% 
   mutate_all(Hmisc::impute, fun = "random") %>% 
   filter(row_number() %in% sample(1:nrow(.), size = 2000, replace = FALSE))
 
-test_data = test_data %>%
+train_test_splits$data_spi_135$test = train_test_splits$data_spi_135$test %>%
   mutate_all(Hmisc::impute, fun = "random") 
+
+
+# Specify resampling parameters -------------------------------------------
+
+# 10-fold repeated cross-validation with SMOTE subsampling
+train_control = trainControl(method = "repeatedcv",
+                             number = 2, # number of folds = 10
+                             repeats = 2, # cross-validation is repeated 10 times
+                             sampling = "smote", # use for resolving class imbalances
+                             returnResamp = "final") # only return results of final model
 
 # Specify tuning grids ----------------------------------------------------
 
@@ -104,8 +91,30 @@ knn_grid = expand.grid(k = seq(from = 1, to = 5, by = 1))
 nnet_grid = expand.grid(size = seq(from = 1, to = 10, by = 1),
                         decay = seq(from = 0.1, to = 0.5, by = 0.1))
 
+
+# Create master df --------------------------------------------------------
+
+# list of ML algorithms to run
+model_list = list("multinom", "knn", "nnet") 
+
+# list of corresponding tuning grids
+tuning_list = map(model_list, ~get(paste0(.x, "_grid")))
+
+# create master df
+master_df = data.frame(ml_model = I(model_list), # use I() to use lists "as is"
+                       tuning_grid = I(tuning_list)) 
+
+master_df = master_df[rep(1:nrow(master_df), times = length(train_test_splits)),]
+
+spi_dataset_names = c("spi_5", "spi_27", "spi_135")
+
+master_df = master_df %>% 
+  mutate(spi_scoring = rep(spi_dataset_names, each = nrow(.)/length(spi_dataset_names))) %>% 
+  mutate(data = rep(map(train_test_splits, "train"), each = nrow(.)/length(spi_dataset_names)))
+
 # Save test data ----------------------------------------------------------
 
-# keep test data separate for later model evaluation
-save(test_data, file = here("output/machine_learning/test_data.Rdata"))
-rm(test_data)
+# save test data for later model evaluation
+saveRDS(train_test_splits$data_spi_5$test, file = here("output/machine_learning/test_data/test_data_spi_5.RDS"))
+saveRDS(train_test_splits$data_spi_27$test, file = here("output/machine_learning/test_data/test_data_spi_27.RDS"))
+saveRDS(train_test_splits$data_spi_135$test, file = here("output/machine_learning/test_data/test_data_spi_135.RDS"))

@@ -35,15 +35,38 @@ data_scored = data_scored %>%
   mutate(diagnosis = as.factor(diagnosis))
 
 # create 3 datasets 
-data_spi135 = data_scored %>% 
-  select(diagnosis, starts_with("q_"))
+datasets = list(data_spi5 = data_scored %>% 
+  select(diagnosis, spi_5_names),
+  data_spi27 = data_scored %>% 
+  select(diagnosis, spi_27_names),
+  data_spi135 = data_scored %>% 
+    select(diagnosis, starts_with("q_")))
 
-data_spi5 = data_scored %>% 
-  select(diagnosis, spi_5_names)
+# function to split datasets into training and testing
 
-data_spi27 = data_scored %>% 
-  select(diagnosis, spi_27_names)
+partition_spi_data = function(dataset) {
+  partition = createDataPartition(dataset$diagnosis,
+                      times = 1,
+                      p = .8,
+                      list = FALSE)
+  
+  train_data = dataset[partition, ] # training data (note: this will be iteratively split into train and validation sets during k-fold cross-validation.)
+  test_data = dataset[-partition, ] # holdout test data. Don't use this until evaluating final model performance.
+  
+  dataset_name = deparse(substitute(dataset))
+  tag = gsub(".*_", "", dataset_name)
+  train_name = paste("train", tag, sep = "_")
+  test_name = paste("test", tag, sep = "_")
+  
+  partitioned_data = list(train_data, test_data)
+  names(partitioned_data) = c(train_name, test_name)
+  
+  return(partitioned_data)
+}
  
+
+splits = map(list(data_spi5, data_spi27, data_spi135), ~partition_spi_data(.x))
+
 # partition into training (80%) and testing (20%)
 partition = createDataPartition(data_ml$diagnosis,
                                    times = 1,

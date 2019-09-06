@@ -45,6 +45,16 @@ keys = keys[names(data), ]
 keys = keys %>%
   select(contains("SPI_135"))
 
+spi_135_indices = grepl("q_", levels(spi.dictionary$item_id))
+spi_135_names = subset(levels(spi.dictionary$item_id), spi_135_indices)
+
+tmp1 <- data %>% 
+  select(-starts_with("q_")) 
+tmp2 <- data %>% 
+  select(spi_135_names) #
+data <- cbind(tmp1, tmp2)
+
+
 # score the items (this contains item and scale statistics too!)
 scored = scoreItems(keys, data)
 spi_scores = as.data.frame(scored$scores)

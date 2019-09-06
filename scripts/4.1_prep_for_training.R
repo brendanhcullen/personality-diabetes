@@ -101,14 +101,14 @@ model_list = list("multinom", "knn", "nnet")
 tuning_list = map(model_list, ~get(paste0(.x, "_grid")))
 
 # create master df
-master_df = data.frame(ml_model = I(model_list), # use I() to use lists "as is"
+train_master_df = data.frame(ml_model = I(model_list), # use I() to use lists "as is"
                        tuning_grid = I(tuning_list)) 
 
-master_df = master_df[rep(1:nrow(master_df), times = length(train_test_splits)),]
+train_master_df = train_master_df[rep(1:nrow(train_master_df), times = length(train_test_splits)),]
 
 spi_dataset_names = c("spi_5", "spi_27", "spi_135")
 
-master_df = master_df %>% 
+train_master_df = train_master_df %>% 
   mutate(spi_scoring = rep(spi_dataset_names, each = nrow(.)/length(spi_dataset_names))) %>% 
   mutate(data = rep(map(train_test_splits, "train"), each = nrow(.)/length(spi_dataset_names)))
 
@@ -118,3 +118,9 @@ master_df = master_df %>%
 saveRDS(train_test_splits$data_spi_5$test, file = here("output/machine_learning/test_data/test_data_spi_5.RDS"))
 saveRDS(train_test_splits$data_spi_27$test, file = here("output/machine_learning/test_data/test_data_spi_27.RDS"))
 saveRDS(train_test_splits$data_spi_135$test, file = here("output/machine_learning/test_data/test_data_spi_135.RDS"))
+
+
+# Save training info ------------------------------------------------------
+
+saveRDS(train_master_df, file = here("output/machine_learning/training/train_master_df.RDS"))
+saveRDS(train_control, file = here("output/machine_learning/training/train_control.RDS"))

@@ -7,36 +7,31 @@ library(Hmisc)
 library(e1071)
 library(DMwR) # for smote sampling
 
-source(here("scripts/4.1_prep_for_training.R"))
+train_master_df = readRDS(here("/output/machine_learning/training/train_master_df.RDS"))
+train_control = readRDS(here("/output/machine_learning/training/train_control.RDS"))
 
-# Train models ------------------------------------------------------------
 
-# list of ML algorithms to run
-model_list = list("multinom", "knn", "nnet") 
-
-# list of corresponding tuning grids
-tuning_list = map(model_list, ~get(paste0(.x, "_grid")))
-
-# function to train models automatically
-run_training = function(model_name, tuning_grid) {
-  set.seed(081919)
+create_script = function(ml_model, tuning_grid, spi_scoring, train_data) {
+  script = "
+  library(caret)
   model = train(diagnosis ~ .,
                  data = train_data,
-                 method = model_name, 
+                 method = ml_model, 
                  trControl = train_control,
                  tuneGrid = tuning_grid,
-                 metric = "Kappa")
+                 metric = 'Kappa')
+                 
+  saveRDS(model, file = 'ml_model_spi_scoring_fit.RDS') 
+"
+  new_script = gsub("train_data", train_data, script)
+  new_script = gsub("ml_model", ml_model, new_script)
+  new_script = gsub("tuning_grid", tuning_grid, new_script)
+  new_script = gsub("spi_scoring", spi_scoring, new_script)
   
-  return(model)
+  filename = paste0(ml_model, "_", spi_scoring, ".R")
+  output_dir = here("output/machine_learning/training/")
+  
+  write_file(new_script, path = paste0(output_dir, filename))
 }
- 
-# train the models
-trained_models = map2(model_list, tuning_list, run_training)
 
-# name each model in output list
-names(trained_models) = model_list
-
-# Save model output -------------------------------------------------------
-
-# save list of trained models
-save(trained_models, file = here("output/machine_learning/trained_models.Rdata"))
+pmap(train_master_df, create_script)

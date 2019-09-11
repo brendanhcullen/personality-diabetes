@@ -6,8 +6,7 @@ scripts_dir = here("output/machine_learning/training/scripts")
 logs_dir = here("output/machine_learning/training/logs")
 
 # use to indicate which set of scripts you want to run. 
-pattern = "spi_135*"
-#pattern = "spi_5"
+pattern = "spi_5"
 #pattern = "*"
 
 scripts = list.files(scripts_dir, full.names = TRUE, pattern = pattern)

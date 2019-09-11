@@ -1,6 +1,7 @@
 # This script applies the machine learning algorithm 'knn' using the 'spi_135' dataset as input features
 
 # load libraries
+library(here)
 library(tidyverse)
 library(caret)
 

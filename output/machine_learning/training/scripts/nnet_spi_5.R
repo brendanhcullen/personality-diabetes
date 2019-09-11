@@ -1,6 +1,7 @@
 # This script applies the machine learning algorithm 'nnet' using the 'spi_5' dataset as input features
 
 # load libraries
+library(here)
 library(tidyverse)
 library(caret)
 

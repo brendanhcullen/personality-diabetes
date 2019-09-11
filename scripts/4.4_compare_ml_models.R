@@ -2,9 +2,8 @@ library(here)
 library(tidyverse)
 library(caret)
 
-# load in list of trained models
-load(here("output/machine_learning/trained_models.Rdata"))
 
+# Load in list of model fits ----------------------------------------------
 model_fits_dir = here("output/machine_learning/training/model_fits")
 model_fits_names = list.files(model_fits_dir, pattern = "_fit.RDS") %>% 
   gsub("_fit.RDS", "", .)
@@ -12,6 +11,9 @@ model_fits_names = list.files(model_fits_dir, pattern = "_fit.RDS") %>%
 model_fits <- list.files(model_fits_dir, pattern = "_fit.RDS", full.names = TRUE) %>%
   map(readRDS) %>% 
   set_names(model_fits_names)
+
+
+# Visualize model comparisons ---------------------------------------------
 
 resamps <- resamples(model_fits)
 
@@ -30,13 +32,13 @@ model_fit_df$output = model_fits
 model_fit_df = model_fit_df %>% 
   separate(model, c("model_name", "spi_scoring"), sep = "_", extra = "merge")
 
-kappas = model_fit_df%>%
+kappas = model_fit_df %>%
   mutate(results = map(output, "results")) %>%
   mutate(kappa = map(results, "Kappa")) %>%
   mutate(kappa = map_dbl(kappa, max, na.rm = TRUE)) %>%
-  dplyr::select(-output, results) %>% 
+  dplyr::select(-c(output, results)) %>% 
   group_by(model_name, spi_scoring) %>% 
-  summarize(max_kappa = max(kappa))
+  arrange(desc(kappa)) # NEED TO FIGURE THIS OUT...
 
 best_model_name = model.df_kappas$model[[1]] # model with largest Kappa
 

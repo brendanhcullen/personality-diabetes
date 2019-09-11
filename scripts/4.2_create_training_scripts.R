@@ -1,11 +1,6 @@
 
 library(here)
 library(tidyverse)
-library(caret)
-library(nnet)
-library(Hmisc)
-library(e1071)
-library(DMwR) # for smote sampling
 
 train_master_df = readRDS(here("/output/machine_learning/training/train_master_df.RDS"))
 train_control = readRDS(here("/output/machine_learning/training/train_control.RDS"))

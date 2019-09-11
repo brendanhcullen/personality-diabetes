@@ -5,7 +5,15 @@ library(caret)
 # load in list of trained models
 load(here("output/machine_learning/trained_models.Rdata"))
 
-resamps <- resamples(trained_models)
+model_fits_dir = here("output/machine_learning/training/model_fits")
+model_fits_names = list.files(model_fits_dir, pattern = "_fit.RDS") %>% 
+  gsub("_fit.RDS", "", .)
+
+model_fits <- list.files(model_fits_dir, pattern = "_fit.RDS", full.names = TRUE) %>%
+  map(readRDS) %>% 
+  set_names(model_fits_names)
+
+resamps <- resamples(model_fits)
 
 # plot accuracy and kappa 
 trellis.par.set(trellis.par.get())
@@ -17,8 +25,8 @@ dotplot(resamps, metric = "Kappa")
 
 # Identify best model -----------------------------------------------------
 
-model.df = data.frame(model = names(trained_models), stringsAsFactors = FALSE)
-model.df$output = trained_models
+model.df = data.frame(model = names(model_fits), stringsAsFactors = FALSE)
+model.df$output = model_fits
 
 model.df_kappas = model.df %>%
   mutate(results = map(output, "results")) %>%
@@ -29,7 +37,7 @@ model.df_kappas = model.df %>%
 
 best_model_name = model.df_kappas$model[[1]] # model with largest Kappa
 
-best_model = trained_models[[best_model_name]]
+best_model = model_fits[[best_model_name]]
 
 
 cat("The best model is", best_model_name, "with tuning parameter(s) of")

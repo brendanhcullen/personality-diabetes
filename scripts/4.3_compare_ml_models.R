@@ -25,15 +25,18 @@ dotplot(resamps, metric = "Kappa")
 
 # Identify best model -----------------------------------------------------
 
-model.df = data.frame(model = names(model_fits), stringsAsFactors = FALSE)
-model.df$output = model_fits
+model_fit_df = data.frame(model = names(model_fits), stringsAsFactors = FALSE)
+model_fit_df$output = model_fits 
+model_fit_df = model_fit_df %>% 
+  separate(model, c("model_name", "spi_scoring"), sep = "_", extra = "merge")
 
-model.df_kappas = model.df %>%
+kappas = model_fit_df%>%
   mutate(results = map(output, "results")) %>%
-  mutate(Kappa = map(results, "Kappa")) %>%
-  mutate(Kappa = map_dbl(Kappa, max, na.rm = TRUE)) %>%
-  dplyr::select(model, Kappa) %>%
-  arrange(desc(Kappa))
+  mutate(kappa = map(results, "Kappa")) %>%
+  mutate(kappa = map_dbl(kappa, max, na.rm = TRUE)) %>%
+  dplyr::select(-output, results) %>% 
+  group_by(model_name, spi_scoring) %>% 
+  summarize(max_kappa = max(kappa))
 
 best_model_name = model.df_kappas$model[[1]] # model with largest Kappa
 
@@ -46,5 +49,5 @@ best_model$bestTune
 
 # Save best model ---------------------------------------------------------
 
-saveRDS(best_model, file = here("output/machine_learning/best_model.RDS"))
+saveRDS(best_model, file = here("output/machine_learning/training/best_model.RDS"))
     

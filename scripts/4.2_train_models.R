@@ -7,36 +7,60 @@ library(Hmisc)
 library(e1071)
 library(DMwR) # for smote sampling
 
-source(here("scripts/4.1_prep_for_training.R"))
+train_master_df = readRDS(here("/output/machine_learning/training/train_master_df.RDS"))
+train_control = readRDS(here("/output/machine_learning/training/train_control.RDS"))
 
-# Train models ------------------------------------------------------------
 
-# list of ML algorithms to run
-model_list = list("multinom", "knn", "nnet") 
+create_script = function(ml_model, tuning_grid, spi_scoring, train_data) {
+  script = "# This script applies the machine learning algorithm 'ml_model_name' using the 'spi_scoring_name' dataset as input features
 
-# list of corresponding tuning grids
-tuning_list = map(model_list, ~get(paste0(.x, "_grid")))
+# load libraries
+library(tidyverse)
+library(caret)
 
-# function to train models automatically
-run_training = function(model_name, tuning_grid) {
-  set.seed(081919)
-  model = train(diagnosis ~ .,
-                 data = train_data,
-                 method = model_name, 
-                 trControl = train_control,
-                 tuneGrid = tuning_grid,
-                 metric = "Kappa")
+# load in relevant info for model training
+train_master_df = readRDS(here('/output/machine_learning/training/train_master_df.RDS'))
+train_control = readRDS(here('/output/machine_learning/training/train_control.RDS'))
+
+# select training data 
+train_data = train_master_df %>% 
+  filter(ml_model == deparse(substitute(ml_model_name)) & spi_scoring == deparse(substitute(spi_scoring_name))) %>% 
+  select(train_data) %>% 
+  map_df(1)
+
+# select tuning grid  
+tuning_grid = train_master_df %>% 
+  filter(ml_model == deparse(substitute(ml_model_name)) & spi_scoring == deparse(substitute(spi_scoring_name))) %>% 
+  select(tuning_grid) %>% 
+  map_df(1)
+
+# train the model 
+model = train(diagnosis ~ .,
+               data = train_data,
+               method = deparse(substitute(ml_model_name)), 
+               trControl = train_control,
+               tuneGrid = tuning_grid,
+               metric = 'Kappa')
+
+# specify where to save model output
+filename = 'ml_model_name_spi_scoring_name_fit.RDS'
+output_dir = here('output/machine_learning/training/model_fits/')
+
+# save model output
+saveRDS(model, file = paste0(output_dir, filename)) 
+"
+  # substitute relevant strings
+  new_script = gsub("ml_model_name", ml_model, script) %>% 
+    gsub("spi_scoring_name", spi_scoring, .) 
+    
+  # specify where to save resulting .R script
+  filename = paste0(ml_model, "_", spi_scoring, ".R")
+  output_dir = here("output/machine_learning/training/scripts/")
   
-  return(model)
+  # create .R script
+  write_file(new_script, path = paste0(output_dir, filename))
 }
- 
-# train the models
-trained_models = map2(model_list, tuning_list, run_training)
 
-# name each model in output list
-names(trained_models) = model_list
+# create .R scripts for all machine learning models
+pmap(train_master_df, create_script)
 
-# Save model output -------------------------------------------------------
-
-# save list of trained models
-save(trained_models, file = here("output/machine_learning/trained_models.Rdata"))

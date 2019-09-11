@@ -15,6 +15,7 @@ create_script = function(ml_model, tuning_grid, spi_scoring, train_data) {
   script = "# This script applies the machine learning algorithm 'ml_model_name' using the 'spi_scoring_name' dataset as input features
 
 # load libraries
+library(here)
 library(tidyverse)
 library(caret)
 

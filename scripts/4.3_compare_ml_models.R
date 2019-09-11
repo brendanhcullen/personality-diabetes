@@ -46,5 +46,5 @@ best_model$bestTune
 
 # Save best model ---------------------------------------------------------
 
-save(best_model, file = here("output/machine_learning/best_model.Rdata"))
+saveRDS(best_model, file = here("output/machine_learning/best_model.RDS"))
     

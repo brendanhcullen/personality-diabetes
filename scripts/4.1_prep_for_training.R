@@ -92,6 +92,15 @@ nnet_grid = expand.grid(size = seq(from = 1, to = 10, by = 1),
                         decay = seq(from = 0.1, to = 0.5, by = 0.1))
 
 
+# Specify additional arguments --------------------------------------------
+
+multinom_args = NULL
+
+knn_args = NULL
+
+nnet_args = list(MaxNWts = as.character(2000),
+                 maxit = as.character(200))
+
 # Create master df --------------------------------------------------------
 
 # list of ML algorithms to run
@@ -100,9 +109,13 @@ model_list = list("multinom", "knn", "nnet")
 # list of corresponding tuning grids
 tuning_list = map(model_list, ~get(paste0(.x, "_grid")))
 
+# list of additonal arguments (these will be unique to each ML algorithm)
+add_args_list = map(model_list, ~get(paste0(.x, "_args")))
+
 # create master df
 train_master_df = data.frame(ml_model = I(model_list), # use I() to use lists "as is"
-                       tuning_grid = I(tuning_list)) 
+                       tuning_grid = I(tuning_list),
+                       add_args = I(add_args_list)) 
 
 train_master_df = train_master_df[rep(1:nrow(train_master_df), times = length(train_test_splits)),]
 
@@ -124,3 +137,4 @@ saveRDS(train_test_splits$data_spi_135$test, file = here("output/machine_learnin
 
 saveRDS(train_master_df, file = here("output/machine_learning/training/train_master_df.RDS"))
 saveRDS(train_control, file = here("output/machine_learning/training/train_control.RDS"))
+

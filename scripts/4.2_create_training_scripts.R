@@ -1,10 +1,29 @@
 
 library(here)
 library(tidyverse)
+library(glue)
 
 train_master_df = readRDS(here("/output/machine_learning/training/train_master_df.RDS"))
 train_control = readRDS(here("/output/machine_learning/training/train_control.RDS"))
 
+insert_add_args = function(add_args) { 
+  default_text = "
+# train the model 
+model = train(diagnosis ~ .,
+              data = train_data,
+              method = deparse(substitute(ml_model_name)), 
+              trControl = train_control,
+              tuneGrid = tuning_grid,
+              metric = 'Kappa'"
+  
+  for (a in add_args) { 
+    default_text = glue(default_text, ", \n PLACEHOLDER FOR ARG NAME = {a}")
+    }
+  glue(default_text, ")")
+  }
+
+insert_add_args(add_args_list[[3]])
+map(insert_add_args, train_master_df$add_args)
 
 create_script = function(ml_model, tuning_grid, spi_scoring, train_data) {
   script = "# This script applies the machine learning algorithm 'ml_model_name' using the 'spi_scoring_name' dataset as input features

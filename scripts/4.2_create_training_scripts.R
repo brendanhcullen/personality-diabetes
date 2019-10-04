@@ -3,9 +3,11 @@ library(here)
 library(tidyverse)
 library(glue)
 
+# load in relevant informatiom
 train_master_df = readRDS(here("/output/machine_learning/training/train_master_df.RDS"))
 train_control = readRDS(here("/output/machine_learning/training/train_control.RDS"))
 
+# function to add additional arguments (wherever needed) when specifying the options for model training
 insert_add_args = function(add_args) { 
   default_text = "
 # train the model 
@@ -17,14 +19,18 @@ model = train(diagnosis ~ .,
               metric = 'Kappa'"
   
   for (a in add_args) { 
-    default_text = glue(default_text, ", \n PLACEHOLDER FOR ARG NAME = {a}")
+    arg_name = names(add_args)[a]
+    default_text = glue(default_text, ", \n {arg_name} = {a}")
     }
   glue(default_text, ")")
   }
 
+# test the function
 insert_add_args(add_args_list[[3]])
-map(insert_add_args, train_master_df$add_args)
+map(add_args_list, insert_add_args)
 
+
+# function to create individual model training scripts for each ML algorithm
 create_script = function(ml_model, tuning_grid, spi_scoring, train_data) {
   script = "# This script applies the machine learning algorithm 'ml_model_name' using the 'spi_scoring_name' dataset as input features
 

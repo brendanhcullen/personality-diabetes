@@ -32,7 +32,8 @@ tuning_grid = train_master_df %>%
   map_df(1)
 
 # Set up parallelization
-cluster = makePSOCKcluster(4)
+number_of_cores = 4
+cluster = makePSOCKcluster(number_of_cores)
 registerDoParallel(cluster)
 
 # train the model 

@@ -39,6 +39,7 @@ create_script = function(ml_model, tuning_grid, spi_scoring, train_data) {
 library(here)
 library(tidyverse)
 library(caret)
+library(doParallel)
 
 # load in relevant info for model training
 train_master_df = readRDS(here('/output/machine_learning/training/train_master_df.RDS'))
@@ -56,6 +57,11 @@ tuning_grid = train_master_df %>%
   select(tuning_grid) %>% 
   map_df(1)
 
+# Set up parallelization
+number_of_cores = 4
+cluster = makePSOCKcluster(number_of_cores)
+registerDoParallel(cluster)
+
 # train the model 
 model = train(diagnosis ~ .,
                data = train_data,
@@ -70,6 +76,9 @@ output_dir = here('output/machine_learning/training/model_fits/')
 
 # save model output
 saveRDS(model, file = paste0(output_dir, filename)) 
+
+# Stop the parallelization
+stopCluster(cluster)
 "
   # substitute relevant strings
   new_script = gsub("ml_model_name", ml_model, script) %>% 

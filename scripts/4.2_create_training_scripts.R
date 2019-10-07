@@ -18,7 +18,7 @@ model = train(diagnosis ~ .,
               tuneGrid = tuning_grid,
               metric = 'Kappa'"
   
-  for (i in 1:length(add_args)) { 
+  for (i in seq_along(add_args)) { 
     arg_name = names(add_args[i])
     a = add_args[i]
     default_text = glue(default_text, ", \n {arg_name} = {a}")

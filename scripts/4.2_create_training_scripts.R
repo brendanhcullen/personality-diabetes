@@ -39,6 +39,7 @@ library(here)
 library(tidyverse)
 library(caret)
 library(doParallel)
+library(DMwR) # for smote sub-sampling
 
 # load in relevant info for model training
 train_master_df = readRDS(here('/output/machine_learning/training/train_master_df.RDS'))

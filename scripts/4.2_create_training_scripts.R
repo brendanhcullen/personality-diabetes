@@ -22,18 +22,21 @@ model = train(diagnosis ~ .,
     arg_name = names(add_args[i])
     a = add_args[i]
     default_text = glue(default_text, ", \n {arg_name} = {a}")
-    }
-  glue(default_text, ")")
+  }
+  
+  default_text = glue(default_text, ")")
+  
+  return(default_text)
   }
 
-# test the function
-insert_add_args(add_args_list[[3]])
-map(add_args_list, insert_add_args)
+# # test the function
+# insert_add_args(add_args_list[[3]])
+# map(add_args_list, insert_add_args)
 
 
 # function to create individual model training scripts for each ML algorithm
-create_script = function(ml_model, tuning_grid, spi_scoring, train_data) {
-  script = "# This script applies the machine learning algorithm 'ml_model_name' using the 'spi_scoring_name' dataset as input features
+create_script = function(ml_model, tuning_grid, add_args, spi_scoring, train_data) {
+  script_chunk_1 = "# This script applies the machine learning algorithm 'ml_model_name' using the 'spi_scoring_name' dataset as input features
 
 # load libraries
 library(here)
@@ -62,14 +65,12 @@ number_of_cores = 4
 cluster = makePSOCKcluster(number_of_cores)
 registerDoParallel(cluster)
 
-# train the model 
-model = train(diagnosis ~ .,
-               data = train_data,
-               method = deparse(substitute(ml_model_name)), 
-               trControl = train_control,
-               tuneGrid = tuning_grid,
-               metric = 'Kappa')
+"
 
+  script_chunk_2 = insert_add_args(add_args)
+
+  script_chunk_3 = "
+  
 # specify where to save model output
 filename = 'ml_model_name_spi_scoring_name_fit.RDS'
 output_dir = here('output/machine_learning/training/model_fits/')
@@ -80,8 +81,11 @@ saveRDS(model, file = paste0(output_dir, filename))
 # Stop the parallelization
 stopCluster(cluster)
 "
+  # combine 3 parts of scripts into one full script
+  full_script = paste(script_chunk_1, script_chunk_2, script_chunk_3)
+  
   # substitute relevant strings
-  new_script = gsub("ml_model_name", ml_model, script) %>% 
+  new_script = gsub("ml_model_name", ml_model, full_script) %>% 
     gsub("spi_scoring_name", spi_scoring, .) 
     
   # specify where to save resulting .R script

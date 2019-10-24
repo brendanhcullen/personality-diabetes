@@ -8,8 +8,9 @@ train_master_df = readRDS(here("/output/machine_learning/training/train_master_d
 train_control = readRDS(here("/output/machine_learning/training/train_control.RDS"))
 
 # function to add additional arguments (wherever needed) when specifying the options for model training
-insert_add_args = function(add_args) { 
-  default_text = "
+insert_add_args = function(add_args) {
+  # this is the default code when no additional arguments are necessary
+  text = "
 # train the model 
 model = train(diagnosis ~ .,
               data = train_data,
@@ -20,19 +21,14 @@ model = train(diagnosis ~ .,
   
   for (i in seq_along(add_args)) { 
     arg_name = names(add_args[i])
-    a = add_args[i]
-    default_text = glue(default_text, ", \n {arg_name} = {a}")
+    arg_value = add_args[i]
+    text = glue(text, ", \n {arg_name} = {arg_value}") # modify default text by adding additional arguments (if there are any)
   }
   
-  default_text = glue(default_text, ")")
+  text = glue(text, ")") # add closing parenthesis
   
-  return(default_text)
+  return(text)
   }
-
-# # test the function
-# insert_add_args(add_args_list[[3]])
-# map(add_args_list, insert_add_args)
-
 
 # function to create individual model training scripts for each ML algorithm
 create_script = function(ml_model, tuning_grid, add_args, spi_scoring, train_data) {

@@ -4,6 +4,9 @@
 library(here)
 library(tidyverse)
 library(caret)
+library(doParallel)
+library(DMwR) # for smote sub-sampling
+library(e1071) # seems to be required for all ML algorithms
 
 # load in relevant info for model training
 train_master_df = readRDS(here('/output/machine_learning/training/train_master_df.RDS'))
@@ -21,17 +24,27 @@ tuning_grid = train_master_df %>%
   select(tuning_grid) %>% 
   map_df(1)
 
-# train the model 
-model = train(diagnosis ~ .,
-               data = train_data,
-               method = deparse(substitute(nnet)), 
-               trControl = train_control,
-               tuneGrid = tuning_grid,
-               metric = 'Kappa')
+# Set up parallelization
+number_of_cores = 4
+cluster = makePSOCKcluster(number_of_cores)
+registerDoParallel(cluster)
 
+ # train the model 
+model = train(diagnosis ~ .,
+              data = train_data,
+              method = deparse(substitute(nnet)), 
+              trControl = train_control,
+              tuneGrid = tuning_grid,
+              metric = 'Kappa', 
+ MaxNWts = 2000, 
+ maxit = 200) 
+  
 # specify where to save model output
 filename = 'nnet_spi_135_fit.RDS'
 output_dir = here('output/machine_learning/training/model_fits/')
 
 # save model output
 saveRDS(model, file = paste0(output_dir, filename)) 
+
+# Stop the parallelization
+stopCluster(cluster)

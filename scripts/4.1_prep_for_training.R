@@ -79,8 +79,7 @@ train_test_splits$data_spi_135$test = train_test_splits$data_spi_135$test %>%
 train_control = trainControl(method = "repeatedcv",
                              number = 2, # number of folds = 10
                              repeats = 2, # cross-validation is repeated 10 times
-                             sampling = "smote", # use for resolving class imbalances
-                             returnResamp = "final") # only return results of final model
+                             sampling = "smote") # use for resolving class imbalances
 
 # Specify tuning grids ----------------------------------------------------
 

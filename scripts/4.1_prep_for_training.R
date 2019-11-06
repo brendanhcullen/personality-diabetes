@@ -66,8 +66,7 @@ train_test_splits = map(datasets, partition_spi_data)
 
 # manually randomly impute for now. Note: imputation will eventually occur as a "pre-processing" step
 train_test_splits$data_spi_135$train = train_test_splits$data_spi_135$train %>% 
-  mutate_all(Hmisc::impute, fun = "random") %>% 
-  filter(row_number() %in% sample(1:nrow(.), size = 2000, replace = FALSE))
+  mutate_all(Hmisc::impute, fun = "random")
 
 train_test_splits$data_spi_135$test = train_test_splits$data_spi_135$test %>%
   mutate_all(Hmisc::impute, fun = "random") 

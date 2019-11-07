@@ -28,20 +28,21 @@ dotplot(resamps, metric = "Kappa")
 
 # Identify best model -----------------------------------------------------
 
-model_fit_df = data.frame(model = names(model_fits), stringsAsFactors = FALSE)
-model_fit_df$output = model_fits 
-model_fit_df = model_fit_df %>% 
-  separate(model, c("model_name", "spi_scoring"), sep = "_", extra = "merge")
-
-kappas = model_fit_df %>%
+kappas = data.frame(model = names(model_fits), stringsAsFactors = FALSE) %>% 
+  mutate(output = model_fits) %>% 
+  separate(model, c("model_name", "spi_scoring"), sep = "_", extra = "merge") %>% 
   mutate(results = map(output, "results")) %>%
   mutate(kappa = map(results, "Kappa")) %>%
   mutate(kappa = map_dbl(kappa, max, na.rm = TRUE)) %>%
-  dplyr::select(-c(output, results)) %>% 
-  group_by(model_name, spi_scoring) %>% 
-  arrange(desc(kappa)) # NEED TO FIGURE THIS OUT...
+  dplyr::select(-output, -results)
 
-best_model_name = model.df_kappas$model[[1]] # model with largest Kappa
+best_model_name = kappas %>% 
+  arrange(desc(kappa)) %>% 
+  slice(1) %>% 
+  unite(full_model_name, model_name, spi_scoring) %>% 
+  select(full_model_name) %>% 
+  map_chr(1) %>% 
+  unname()
 
 best_model = model_fits[[best_model_name]]
 

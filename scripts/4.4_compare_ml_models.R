@@ -12,6 +12,7 @@ model_fits <- list.files(model_fits_dir, pattern = "_fit.RDS", full.names = TRUE
   map(readRDS) %>% 
   set_names(model_fits_names)
 
+rm(model_fits_dir, model_fits_names)
 
 # Visualize model comparisons ---------------------------------------------
 

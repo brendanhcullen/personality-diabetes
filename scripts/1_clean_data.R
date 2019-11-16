@@ -49,9 +49,79 @@ rm(toydata)
 
 # Filter data -------------------------------------------------------------
 
-# remove who did not respond to diabetes question
+# only USA data
+# only people who responsed to diabetes question
+
 data = data %>% 
-  filter(!is.na(diagnosis))
+  select(RID, diagnosis, everything()) %>% # move diagnosis variable to front
+  filter(!is.na(diagnosis),
+         country == "USA")
+
+# Wrangle demographic vars ------------------------------------------------
+
+# make sure occupational variables are numeric
+data = data %>%
+  mutate_at(vars(matches("^(p)\\d(occ)")), as.numeric)
+
+# recode all education variables to numeric values -- TURN THIS INTO A FUNCTION
+data = data %>%
+  mutate(education = case_when(
+    education == "less12yrs" ~ "6", 
+    education == "HSgrad" ~ "12", 
+    education == "SomeCollege" ~ "14", 
+    education == "CurrentInUniv" ~ "14", 
+    education == "AssociateDegree" ~ "14", 
+    education == "CollegeDegree" ~ "16", 
+    education == "InGradOrProSchool" ~ "18", 
+    education == "GradOrProDegree" ~ "20")) %>% 
+  mutate(education = as.numeric(education))
+
+data = data %>%
+  mutate(p1edu = case_when(
+    p1edu == "less12yrs" ~ "6", 
+    p1edu == "HSgrad" ~ "12", 
+    p1edu == "SomeCollege" ~ "14", 
+    p1edu == "CurrentInUniv" ~ "14", 
+    p1edu == "AssociateDegree" ~ "14", 
+    p1edu == "CollegeDegree" ~ "16", 
+    p1edu == "InGradOrProSchool" ~ "18", 
+    p1edu == "GradOrProDegree" ~ "20")) %>% 
+  mutate(p1edu = as.numeric(p1edu))
+
+data = data %>%
+  mutate(p2edu = case_when(
+    p2edu == "less12yrs" ~ "6", 
+    p2edu == "HSgrad" ~ "12", 
+    p2edu == "SomeCollege" ~ "14", 
+    p2edu == "CurrentInUniv" ~ "14",   
+    p2edu == "AssociateDegree" ~ "14", 
+    p2edu == "CollegeDegree" ~ "16", 
+    p2edu == "InGradOrProSchool" ~ "18", 
+    p2edu == "GradOrProDegree" ~ "20")) %>% 
+  mutate(p2edu = as.numeric(p2edu))
+
+# Remove missing data for SES???
+# data = data %>%
+#   filter(!is.na(p1edu) | !is.na(p2edu) |
+#         !is.na(p1occIncomeEst) | !is.na(p2occIncomeEst) |
+#         !is.na(p1occPrestige) | !is.na(p2occPrestige))
+
+# estimate SES composite
+data = data %>%
+  mutate(z.education = scale(education),
+         z.occIncomeEst = scale(occIncomeEst),
+         z.occPrestige = scale(occPrestige),
+         z.p1edu = scale(p1edu),
+         z.p2edu = scale(p2edu),
+         z.p1occIncomeEst = scale(p1occIncomeEst),
+         z.p2occIncomeEst = scale(p2occIncomeEst),
+         z.p1occPrestige = scale(p1occPrestige),
+         z.p2occPrestige = scale(p2occPrestige)) %>% 
+  mutate(ses = rowMeans(.[,grepl("^z\\.", names(.))], na.rm=TRUE)) %>% 
+  select(-starts_with("z"))
+
+# indicate names of demographic variables we want to retain later on
+demo_var_names = c("age", "ses", "ethnic")
 
 # Score SPI-135 data ----------------------------------------------------------
 

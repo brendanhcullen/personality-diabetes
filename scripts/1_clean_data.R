@@ -1,28 +1,51 @@
-# This script imports raw SAPA data and performs basic cleaning operations:
-# 1) score raw SPI items according to 5- and 27-factor solutions
-# 2) convert varaibles to correct type (e.g. factors)
-# 3) create composite demographic variables???
-# 4) impute missing data???
+# This script imports raw SAPA data and performs the following cleaning operations:
+# 1) score SPI data
+# 2) convert variables to correct type (e.g. factors)
+# 3) create composite demographic variables (SES)
 
+# load libraries
 library(here)
 library(tidyverse)
 library(psych)
 library(janitor)
+library(dataverse)
+library(data.table)
 
 # import helper functions
 source(here("src/helper_functions.R"))
 
 # Import data -------------------------------------------------------------
 
+# function to retrieve SAPA data from dataverse
+retrieve_data <- function(doi, dataset_name){
+  dataset <- get_dataset(doi)
+  writeBin(get_file(dataset_name, doi), dataset_name)
+  dataset <- fread(dataset_name, na.strings=getOption("<NA>","NA")) %>%
+    as.data.frame() %>% 
+    subset(select = -c(1))
+  file.remove(dataset_name)
+  return(dataset)
+}
+
+# example for retrieving real SAPA data
+# data <- retrieve_data(doi = "doi:10.7910/DVN/TZJGAT", 
+#                       dataset_name = "sapaTempData696items22dec2015thru07feb2017.tab")
+
+
+
+# Import toy data ---------------------------------------------------------
+
+######################### REMOVE THIS FOR REAL ANALYSIS ######################### 
+
 # import toydataset to use for writing analysis code
 source(here("src/build_toy_data.R"))
 
+# add RID variable to be consistent with real SAPA data
 data = toydata %>% 
   rownames_to_column() %>% 
   rename(RID = rowname)
 
-# when importing real dataset use this:
-#data = retrieve_data("doi:10.7910/DVN/TZJGAT", "sapaTempData696items22dec2015thru07feb2017.tab")
+rm(toydata)
 
 # Filter data -------------------------------------------------------------
 

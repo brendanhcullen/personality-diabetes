@@ -11,9 +11,6 @@ library(janitor)
 library(dataverse)
 library(data.table)
 
-# import helper functions
-source(here("src/helper_functions.R"))
-
 # Import data -------------------------------------------------------------
 
 # function to retrieve SAPA data from dataverse

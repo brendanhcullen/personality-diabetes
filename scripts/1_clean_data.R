@@ -49,15 +49,13 @@ rm(toydata)
 
 # Filter data -------------------------------------------------------------
 
-# only USA data
-# only people who responsed to diabetes question
-
 data = data %>% 
-  select(RID, diagnosis, everything()) %>% # move diagnosis variable to front
-  filter(!is.na(diagnosis),
-         country == "USA")
+  filter(!is.na(diagnosis), # only people who responsed to diabetes question
+         country == "USA") # only USA data
 
 # Wrangle demographic vars ------------------------------------------------
+
+## SES
 
 # make sure occupational variables are numeric
 data = data %>%
@@ -120,8 +118,16 @@ data = data %>%
   mutate(ses = rowMeans(.[,grepl("^z\\.", names(.))], na.rm=TRUE)) %>% 
   select(-starts_with("z"))
 
-# indicate names of demographic variables we want to retain later on
-demo_var_names = c("age", "ses", "ethnic")
+## ETHNICITY
+
+# RE-CODE ETHNICITY VARIABLE HERE
+
+# select only relevant demographic vars
+data = data %>% 
+  select(RID, # ID numnber
+         diagnosis, # diabetes diagnosis
+         age, ses, ethnic, # relevant demographic vars
+         starts_with("q_")) # all personality vars
 
 # Score SPI-135 data ----------------------------------------------------------
 

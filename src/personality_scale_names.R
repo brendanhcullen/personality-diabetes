@@ -1,26 +1,33 @@
-keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1)
+# This script reads in superKey.csv and extracts the names of the raw 135 SPI items as
+# well as the names of the SPI scored with 5 factors and 27 factors.
 
-keys = keys %>%
-  select(contains("SPI_135")) 
+# load libraries
+library(here)
+library(janitor)
+library(tidyverse)
 
-#identify rows with all 0's
-row_remove = apply(keys, 1, function(row) all(row == 0))
-keys = keys[!(row_remove), ]
+# Read in superKey data
+keys = read.csv("src/superKey.csv", header = TRUE, row.names = 1)
 
-#save as key matrix
-key.matrix = keys
+# extract SPI names
+spi_names = keys %>% 
+  clean_names() %>% 
+  select(contains("spi_135_27_5")) %>% 
+  names() %>% 
+  gsub("spi_135_27_5_", "", .)
 
-# create vectors with names of scales
-keys = names(keys)
-names(keys) = keys
+spi_5_names = spi_names[1:5]
 
-SPI_27_names = gsub("SPI_135_27_5_", "", keys)
-SPI_5_names = c("Agreeableness", "Conscientiousness", "Extraversion", "Neuroticism", "Openness")
-names(SPI_5_names) = names(SPI_27_names)[1:5]
-SPI_27_names = SPI_27_names[6:32]
-#names(SPI_27_names) = SPI_27_names
-SPI_27_names = gsub("([a-z])([A-Z])", "\\1 \\2", SPI_27_names)
+spi_27_names = spi_names[6:32]
 
-all_names = c(SPI_5_names, SPI_27_names)
-all_names[length(all_names)+1] = "Cognitive Ability"
-names(all_names)[length(all_names)] = "cog"
+spi_135_names = keys %>% 
+  clean_names() %>% 
+  select(contains("spi_135_27_5")) %>% 
+  rownames_to_column() %>% 
+  filter(rowname %in% grep("q_*", rownames(keys), value = TRUE)) %>% 
+  mutate_if(is.numeric, abs) %>% 
+  mutate(row_sum = rowSums(.[,-1])) %>% 
+  filter(!row_sum == 0) %>% 
+  pull(rowname)
+
+rm(keys, spi_names)

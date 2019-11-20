@@ -7,7 +7,7 @@ library(janitor)
 library(tidyverse)
 
 # Read in superKey data
-keys = read.csv("src/superKey.csv", header = TRUE, row.names = 1)
+keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1)
 
 # extract SPI names
 spi_names = keys %>% 

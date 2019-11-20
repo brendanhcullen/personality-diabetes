@@ -1,6 +1,6 @@
 set.seed(072219)
 
-packages = c("tidyverse", "dataverse", "data.table")
+packages = c("tidyverse", "dataverse", "data.table", "here")
 lapply(packages, library, character.only = TRUE)
 rm(packages)
 
@@ -37,3 +37,6 @@ rm(list = ls(pattern = "p_"))
 
 # remove raw datafile
 file.remove("sapaTempData696items22dec2015thru07feb2017.tab")
+
+# save toydata to file
+save(toydata, file = here("data/toydata.Rdata"))

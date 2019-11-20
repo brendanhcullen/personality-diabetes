@@ -33,7 +33,10 @@ retrieve_data <- function(doi, dataset_name){
 ######################### REMOVE THIS FOR REAL ANALYSIS ######################### 
 
 # import toydataset to use for writing analysis code
-source(here("src/build_toy_data.R"))
+#source(here("src/build_toy_data.R"))
+
+# load in toy dataset
+load(here("data/toydata.Rdata"))
 
 # add RID variable to be consistent with real SAPA data
 data = toydata %>% 
@@ -114,7 +117,7 @@ data = data %>%
 source(here("src/personality_scale_names.R"))
 
 # Read in superKey data
-keys = read.csv("src/superKey.csv", header = TRUE, row.names = 1) %>% 
+keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1) %>% 
   clean_names()
 
 # only retain SPI items that are part of the SPI-135
@@ -142,6 +145,9 @@ names(spi_5_scores) = spi_5_names
 data = cbind(select(data, -starts_with("q_")),
         spi_5_scores, 
         select(data, starts_with("q_")))
+
+
+# Score SPI-27 (using IRT) ------------------------------------------------
 
 
 

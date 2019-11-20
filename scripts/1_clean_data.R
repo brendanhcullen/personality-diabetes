@@ -102,6 +102,11 @@ data = data %>%
          !is.nan(ses), # filter out NaN's as well (NaN's may have been created, as this is a derived composite variable)
          !is.na(ethnic))
 
+# Fix variable types
+data = data %>% 
+  mutate(diagnosis = as.factor(diagnosis),
+         ethnic = as.factor(ethnic))
+
 # Score SPI data ----------------------------------------------------------
 
 # import SPI scale names
@@ -139,12 +144,6 @@ data_scored = cbind(data, spi_scores) %>%
 spi_names = gsub("SPI_135_27_5_", "", names(keys))
 spi_5_names = spi_names[1:5]
 spi_27_names = spi_names[6:32]
-
-# Fix variable types ------------------------------------------------------
-
-# change char vars to factors 
-data_scored = fix_var_types(data_scored)
-
 
 # Save cleaned data -------------------------------------------------------
 

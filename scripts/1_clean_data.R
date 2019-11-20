@@ -143,6 +143,8 @@ data = cbind(select(data, -starts_with("q_")),
         spi_5_scores, 
         select(data, starts_with("q_")))
 
+
+
 # Save cleaned data -------------------------------------------------------
 
 save(data_scored, file = here("output/data_cleaned.Rdata"))

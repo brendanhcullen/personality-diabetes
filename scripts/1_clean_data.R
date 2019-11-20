@@ -28,8 +28,6 @@ retrieve_data <- function(doi, dataset_name){
 # data <- retrieve_data(doi = "doi:10.7910/DVN/TZJGAT", 
 #                       dataset_name = "sapaTempData696items22dec2015thru07feb2017.tab")
 
-
-
 # Import toy data ---------------------------------------------------------
 
 ######################### REMOVE THIS FOR REAL ANALYSIS ######################### 
@@ -76,6 +74,8 @@ recode_edu_vars = function(x){
 data = data %>% 
   mutate_at(vars(matches("edu")), recode_edu_vars)
 
+rm(recode_edu_vars)
+
 # create composite SES vars for self (referring to actual respondent) and parent (average of p1 and p2 vars)
 data = data %>%
   mutate_at(vars(matches("edu|occ")), scale) %>% # standardize all SES variables of interest
@@ -99,7 +99,7 @@ data = data %>%
          starts_with("q_")) %>%  # all personality vars
   filter(!is.na(age), 
          !is.na(ses),
-         !is.nan(ses), # filter out NaN's as well (NaN's may have been created, as this is a derived composite variable)
+         !is.nan(ses), # filter out NaN's as well (NaN's may have been created in addition to NA's, as this is a derived composite variable)
          !is.na(ethnic))
 
 # Fix variable types
@@ -107,43 +107,41 @@ data = data %>%
   mutate(diagnosis = as.factor(diagnosis),
          ethnic = as.factor(ethnic))
 
-# Score SPI data ----------------------------------------------------------
+
+# Prep for SPI scoring ----------------------------------------------------
 
 # import SPI scale names
 source(here("src/personality_scale_names.R"))
 
 # Read in superKey data
-keys = read.csv("src/superKey.csv", header = TRUE, row.names = 1)
-
-# select just the rows that correspond to variables in the current data
-keys = keys[names(data), ]
-
-# select just the scales that are scored using the SPI_135 form
-keys = keys %>%
-  select(contains("SPI_135"))
-
-spi_135_indices = grepl("q_", levels(spi.dictionary$item_id))
-spi_135_names = subset(levels(spi.dictionary$item_id), spi_135_indices)
-
-tmp1 <- data %>% 
-  select(-starts_with("q_")) 
-tmp2 <- data %>% 
-  select(spi_135_names) #
-data <- cbind(tmp1, tmp2)
-
-
-# score the items (this contains item and scale statistics too!)
-scored = scoreItems(keys, data)
-spi_scores = as.data.frame(scored$scores)
-names(spi_scores) = gsub("SPI_135_27_5_", "", names(spi_scores))
-
-# add scores to data
-data_scored = cbind(data, spi_scores) %>% 
+keys = read.csv("src/superKey.csv", header = TRUE, row.names = 1) %>% 
   clean_names()
 
-spi_names = gsub("SPI_135_27_5_", "", names(keys))
-spi_5_names = spi_names[1:5]
-spi_27_names = spi_names[6:32]
+# only retain SPI items that are part of the SPI-135
+data = data %>% 
+  select(spi_135_names) %>% 
+  cbind(select(data, -starts_with("q_")), .)
+
+# filter for rows that correspond to variables in the current data and select only SPI columns
+keys = keys[names(data), ] %>% 
+  select(contains("spi_135"))
+
+
+# Score SPI-5 (i.e. Big 5) ------------------------------------------------
+
+# get keys for Big 5
+spi_5_keys = keys %>% 
+  select(1:5)
+
+# score the Big 5 scales
+scored = scoreItems(spi_5_keys, data)
+spi_5_scores = as.data.frame(scored$scores)
+names(spi_5_scores) = spi_5_names
+
+# add SPI-5 scores to data
+data = cbind(select(data, -starts_with("q_")),
+        spi_5_scores, 
+        select(data, starts_with("q_")))
 
 # Save cleaned data -------------------------------------------------------
 

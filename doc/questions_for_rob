@@ -1,3 +1,8 @@
 Questions to ask Rob
 
 * is it more or less defensible to use random search for the tuning parameters or to specify a grid?
+
+11/20/19: Rob says: grid search! There are certain heuristics to follow about the spacing between different parameters. StackOverflow is a good resource for determining how to set up the tuning grids.
+
+Also, feedback from Paul Novak:
+"I think I have only seen grid search used. And I have heard that the parameters should vary by a factor of two or three ( for example a grid search over the regularization parameter should use values like 0.1, 0.3, 1.0, 3.0, 10.0, etc. )."

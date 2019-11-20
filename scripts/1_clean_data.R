@@ -58,83 +58,59 @@ data = data %>%
 data = data %>%
   mutate_at(vars(matches("^(p)\\d(occ)")), as.numeric)
 
-# recode all education variables to numeric values -- TURN THIS INTO A FUNCTION
+# recode all education variables (for self, parent 1, parent 2)
+recode_edu_vars = function(x){
+  x = case_when(
+    x == "less12yrs" ~ "6", 
+    x == "HSgrad" ~ "12", 
+    x == "SomeCollege" ~ "14", 
+    x == "CurrentInUniv" ~ "14", 
+    x == "AssociateDegree" ~ "14", 
+    x == "CollegeDegree" ~ "16", 
+    x == "InGradOrProSchool" ~ "18", 
+    x == "GradOrProDegree" ~ "20")
+  
+  x = as.numeric(x)
+}
+
+data = data %>% 
+  mutate_at(grep("edu", names(data)), recode_edu_vars)
+
+# create composite SES vars for self (referring to actual respondent) and parent (average of p1 and p2 vars)
 data = data %>%
-  mutate(education = case_when(
-    education == "less12yrs" ~ "6", 
-    education == "HSgrad" ~ "12", 
-    education == "SomeCollege" ~ "14", 
-    education == "CurrentInUniv" ~ "14", 
-    education == "AssociateDegree" ~ "14", 
-    education == "CollegeDegree" ~ "16", 
-    education == "InGradOrProSchool" ~ "18", 
-    education == "GradOrProDegree" ~ "20")) %>% 
-  mutate(education = as.numeric(education))
+  mutate_at(grep("edu|occ", names(.)), scale) %>% # standardize all SES variables of interest
+  mutate(self_ses = rowMeans(.[,c("education", "occPrestige", "occIncomeEst")], na.rm = TRUE),
+         parent_ses = rowMeans(.[,grepl("p1|p2", names(.))], na.rm = TRUE))
 
-data = data %>%
-  mutate(p1edu = case_when(
-    p1edu == "less12yrs" ~ "6", 
-    p1edu == "HSgrad" ~ "12", 
-    p1edu == "SomeCollege" ~ "14", 
-    p1edu == "CurrentInUniv" ~ "14", 
-    p1edu == "AssociateDegree" ~ "14", 
-    p1edu == "CollegeDegree" ~ "16", 
-    p1edu == "InGradOrProSchool" ~ "18", 
-    p1edu == "GradOrProDegree" ~ "20")) %>% 
-  mutate(p1edu = as.numeric(p1edu))
+# use parent_ses for respondents under age 18 or current students over 18; otherwise use self_ses
+data = data %>% 
+  mutate(which_ses = ifelse(age <= 18 | (age > 18 & jobstatus == "student"), 
+                            "parent", 
+                            "self"),
+         ses = ifelse(which_ses == "self", 
+                      self_ses, 
+                      parent_ses))
 
-data = data %>%
-  mutate(p2edu = case_when(
-    p2edu == "less12yrs" ~ "6", 
-    p2edu == "HSgrad" ~ "12", 
-    p2edu == "SomeCollege" ~ "14", 
-    p2edu == "CurrentInUniv" ~ "14",   
-    p2edu == "AssociateDegree" ~ "14", 
-    p2edu == "CollegeDegree" ~ "16", 
-    p2edu == "InGradOrProSchool" ~ "18", 
-    p2edu == "GradOrProDegree" ~ "20")) %>% 
-  mutate(p2edu = as.numeric(p2edu))
-
-# Remove missing data for SES???
-# data = data %>%
-#   filter(!is.na(p1edu) | !is.na(p2edu) |
-#         !is.na(p1occIncomeEst) | !is.na(p2occIncomeEst) |
-#         !is.na(p1occPrestige) | !is.na(p2occPrestige))
-
-# estimate SES composite
-data = data %>%
-  mutate(z.education = scale(education),
-         z.occIncomeEst = scale(occIncomeEst),
-         z.occPrestige = scale(occPrestige),
-         z.p1edu = scale(p1edu),
-         z.p2edu = scale(p2edu),
-         z.p1occIncomeEst = scale(p1occIncomeEst),
-         z.p2occIncomeEst = scale(p2occIncomeEst),
-         z.p1occPrestige = scale(p1occPrestige),
-         z.p2occPrestige = scale(p2occPrestige)) %>% 
-  mutate(ses = rowMeans(.[,grepl("^z\\.", names(.))], na.rm=TRUE)) %>% 
-  select(-starts_with("z"))
-
-## ETHNICITY
-
-# RE-CODE ETHNICITY VARIABLE HERE
-
-# select only relevant demographic vars
+# select only relevant demographic vars and filter out people with missing demographic data
 data = data %>% 
   select(RID, # ID numnber
          diagnosis, # diabetes diagnosis
          age, ses, ethnic, # relevant demographic vars
-         starts_with("q_")) # all personality vars
+         starts_with("q_")) %>%  # all personality vars
+  filter(!is.na(age), 
+         !is.na(ses),
+         !is.nan(ses), # filter out NaN's as well (NaN's may have been created, as this is a derived composite variable)
+         !is.na(ethnic))
 
-# Score SPI-135 data ----------------------------------------------------------
+# Score SPI data ----------------------------------------------------------
 
-#data_scored = score_spi(data)
+# import SPI scale names
+source(here("src/personality_scale_names.R"))
 
-keys = read.table(url("https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/TZJGAT/YGMHBT"), 
-                  header = TRUE, 
-                  row.names = 1)
+# Read in superKey data
+keys = read.csv("src/superKey.csv", header = TRUE, row.names = 1)
 
-# select just the rows that correspond to variables in the current SAPA dataset
+# select just the rows that correspond to variables in the current data
 keys = keys[names(data), ]
 
 # select just the scales that are scored using the SPI_135 form

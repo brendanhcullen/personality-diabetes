@@ -74,11 +74,11 @@ recode_edu_vars = function(x){
 }
 
 data = data %>% 
-  mutate_at(grep("edu", names(data)), recode_edu_vars)
+  mutate_at(vars(matches("edu")), recode_edu_vars)
 
 # create composite SES vars for self (referring to actual respondent) and parent (average of p1 and p2 vars)
 data = data %>%
-  mutate_at(grep("edu|occ", names(.)), scale) %>% # standardize all SES variables of interest
+  mutate_at(vars(matches("edu|occ")), scale) %>% # standardize all SES variables of interest
   mutate(self_ses = rowMeans(.[,c("education", "occPrestige", "occIncomeEst")], na.rm = TRUE),
          parent_ses = rowMeans(.[,grepl("p1|p2", names(.))], na.rm = TRUE))
 

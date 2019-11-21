@@ -25,9 +25,9 @@ rm(dataset4)
   p_t2d = p_d - p_t1d
   p_healthy = 1-p_d
   
-#rename dataset and add random diagnosis variable  
+#rename dataset and add random diabetes variable  
 toydata = sapaTempData696items22dec2015thru07feb2017 %>%
-  mutate(diagnosis = sample(x = c("t1d", "t2d", "healthy"),
+  mutate(diabetes = sample(x = c("t1d", "t2d", "healthy"),
                             size = nrow(.), 
                             replace = TRUE, 
                             prob = c(p_t1d, p_t2d, p_healthy)))

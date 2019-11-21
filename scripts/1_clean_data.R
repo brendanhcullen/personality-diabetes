@@ -19,9 +19,6 @@ library(data.table)
 
 ######################### REMOVE THIS FOR REAL ANALYSIS ######################### 
 
-# import toydataset to use for writing analysis code
-#source(here("src/build_toy_data.R"))
-
 # load in toy dataset
 load(here("data/toydata.Rdata"))
 

@@ -15,10 +15,10 @@ load(here("output/data_cleaned.Rdata"))
 
 # convert to long format and nest
 data_nested = data_scored %>% 
-  mutate(diagnosis = as.character(diagnosis)) %>% 
+  mutate(diabetes = as.character(diabetes)) %>% 
   select(-contains("q_")) %>% # remove raw SPI items
   select(-("rid":"p2occ_income_est")) %>% # remove demographic vars
-  gather(-diagnosis, key = trait, value = score) %>% # convert to long format
+  gather(-diabetes, key = trait, value = score) %>% # convert to long format
   group_by(trait) %>% 
   nest()
 
@@ -29,17 +29,17 @@ data_nested = expand.grid(
   stringsAsFactors = FALSE) %>% 
   left_join(data_nested) %>% # join with nested dataframe
   # filter nested data frames according to group comparison:
-  mutate(data = case_when(comparison == "t1.v.t2" ~ map(data, ~filter(.x, !diagnosis == "healthy")),
-                          comparison == "t1.v.healthy" ~ map(data, ~filter(.x, !diagnosis == "t2d")),
-                          comparison == "t2.v.healthy" ~ map(data, ~filter(.x, !diagnosis == "t1d"))))
+  mutate(data = case_when(comparison == "t1.v.t2" ~ map(data, ~filter(.x, !diabetes == "healthy")),
+                          comparison == "t1.v.healthy" ~ map(data, ~filter(.x, !diabetes == "t2d")),
+                          comparison == "t2.v.healthy" ~ map(data, ~filter(.x, !diabetes == "t1d"))))
 
 
 # Iterate t-tests ----------------------------------------------------
 
 # run t-test for each personality trait variable
 t_test_output = data_nested %>% 
-  mutate(t_test = map(data, ~broom::tidy(t.test(score ~ diagnosis, data = .))), # iterate t-tests
-         cohens_d = map(data, ~effsize::cohen.d(score ~ diagnosis, data = .)) %>% # iterate cohen's d
+  mutate(t_test = map(data, ~broom::tidy(t.test(score ~ diabetes, data = .))), # iterate t-tests
+         cohens_d = map(data, ~effsize::cohen.d(score ~ diabetes, data = .)) %>% # iterate cohen's d
            map_dbl("estimate")) %>% # extract just Cohen's d estimate from list output
   select(-data) %>% 
   unnest() %>% 
@@ -54,7 +54,7 @@ boot.n = 10
 
 #helper function
 d_boot = function(split){
-  effsize::cohen.d(score ~ diagnosis, data = analysis(split)) 
+  effsize::cohen.d(score ~ diabetes, data = analysis(split)) 
   }
 
 # iterate cohen's d confidence intervals

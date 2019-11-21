@@ -6,7 +6,7 @@
 
 load(here("output/data_cleaned.Rdata"))
 
-probs = table(data_scored$diagnosis)
+probs = table(data_scored$diabetes)
 p_t1d = probs["t1d"]/sum(probs)
 p_t2d = probs["t2d"]/sum(probs)
 p_healthy = probs["healthy"]/sum(probs)
@@ -24,10 +24,10 @@ spec_t1d = numeric(length = num_resamples)
 sens_t2d = numeric(length = num_resamples)
 spec_t2d = numeric(length = num_resamples)
 
-real_data = data_scored$diagnosis
+real_data = data_scored$diabetes
 
 for(i in 1:num_resamples){
-random_pred = sample(x = unique(data_scored$diagnosis), size = n, prob = c(p_healthy, p_t2d, p_t1d), replace = TRUE)
+random_pred = sample(x = unique(data_scored$diabetes), size = n, prob = c(p_healthy, p_t2d, p_t1d), replace = TRUE)
 CM = confusionMatrix(real_data, random_pred)
 
 acc[i] = CM$overall["Accuracy"]

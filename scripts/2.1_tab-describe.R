@@ -7,14 +7,14 @@ library(tidyverse)
 load(here("output/descriptives.Rdata"))
 
 
-descriptives <- data.frame(diagnosis = c("t1d", "t2d", "healthy")) %>% 
+descriptives <- data.frame(diabetes = c("t1d", "t2d", "healthy")) %>% 
   mutate(desc = descriptives) %>% 
   mutate(desc = map(desc, ~rownames_to_column(as.data.frame(.x)))) %>% 
   unnest() %>% 
   rename(variable = rowname) %>% 
-  select(variable, diagnosis, n, mean, sd) %>% 
-  gather(key, value, -variable, -diagnosis) %>% 
-  spread(variable, diagnosis)
+  select(variable, diabetes, n, mean, sd) %>% 
+  gather(key, value, -variable, -diabetes) %>% 
+  spread(variable, diabetes)
 
 
 

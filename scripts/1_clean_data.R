@@ -32,7 +32,7 @@ rm(toydata)
 # Filter data -------------------------------------------------------------
 
 data = data %>% 
-  filter(!is.na(diagnosis), # only people who responsed to diabetes question
+  filter(!is.na(diabetes), # only people who responsed to diabetes question
          country == "USA") # only USA data
 
 # Wrangle demographic vars ------------------------------------------------
@@ -81,7 +81,7 @@ data = data %>%
 # select only relevant demographic vars and filter out people with missing demographic data
 data = data %>% 
   select(RID, # ID numnber
-         diagnosis, # diabetes diagnosis
+         diabetes, # diabetes diagnosis
          age, ses, ethnic, # relevant demographic vars
          starts_with("q_")) %>%  # all personality vars
   filter(!is.na(age), 
@@ -91,7 +91,7 @@ data = data %>%
 
 # Fix variable types
 data = data %>% 
-  mutate(diagnosis = as.factor(diagnosis),
+  mutate(diabetes = as.factor(diabetes),
          ethnic = as.factor(ethnic))
 
 

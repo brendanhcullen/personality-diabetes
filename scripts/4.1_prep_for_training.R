@@ -30,22 +30,22 @@ spi_5_names = spi_names[1:5]
 spi_27_names = spi_names[6:32]
 rm(keys, spi_names)
 
-# convert diagnosis to a factor
+# convert diabetes to a factor
 data_scored = data_scored %>% 
-  mutate(diagnosis = as.factor(diagnosis))
+  mutate(diabetes = as.factor(diabetes))
 
 # create 3 spi datasets for training
 datasets = list(data_spi_5 = data_scored %>% 
-  select(diagnosis, spi_5_names),
+  select(diabetes, spi_5_names),
   data_spi_27 = data_scored %>% 
-  select(diagnosis, spi_27_names),
+  select(diabetes, spi_27_names),
   data_spi_135 = data_scored %>% 
-    select(diagnosis, starts_with("q_")))
+    select(diabetes, starts_with("q_")))
 
 # function to split datasets into training and testing
 
 partition_spi_data = function(dataset) {
-  partition = createDataPartition(dataset$diagnosis,
+  partition = createDataPartition(dataset$diabetes,
                       times = 1,
                       p = .8,
                       list = FALSE)

@@ -12,7 +12,7 @@ insert_add_args = function(add_args) {
   # this is the default code when no additional arguments are necessary
   text = "
 # train the model 
-model = train(diagnosis ~ .,
+model = train(diabetes ~ .,
               data = train_data,
               method = deparse(substitute(ml_model_name)), 
               trControl = train_control,

@@ -13,20 +13,7 @@ library(data.table)
 
 # Import data -------------------------------------------------------------
 
-# function to retrieve SAPA data from dataverse
-retrieve_data <- function(doi, dataset_name){
-  dataset <- get_dataset(doi)
-  writeBin(get_file(dataset_name, doi), dataset_name)
-  dataset <- fread(dataset_name, na.strings=getOption("<NA>","NA")) %>%
-    as.data.frame() %>% 
-    subset(select = -c(1))
-  file.remove(dataset_name)
-  return(dataset)
-}
-
-# example for retrieving real SAPA data
-# data <- retrieve_data(doi = "doi:10.7910/DVN/TZJGAT", 
-#                       dataset_name = "sapaTempData696items22dec2015thru07feb2017.tab")
+######################### IMPORT ACTUAL DATASET HERE ######################### 
 
 # Import toy data ---------------------------------------------------------
 

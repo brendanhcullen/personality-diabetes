@@ -149,8 +149,53 @@ data = cbind(select(data, -starts_with("q_")),
 
 # Score SPI-27 (using IRT) ------------------------------------------------
 
+# load info on IRT calibrations
+load(here("data/IRTinfoSPI27.rdata")) # this file is in .gitignore for now
 
+# Read in superKey data again (with uppercase names in order to be compatible with IRT code below)
+keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1)
+
+######## ALL IRT CODE WAS COPIED FROM SARA'S SAPA BMI PROJECT ######## 
+# more info here: https://github.com/sjweston/SAPA_BMI/tree/master/irt_troubleshoot
+
+# IRT score
+dataSet <- subset(data, select = c(orderForItems))
+
+SPIirtScores <- matrix(nrow=dim(dataSet)[1], ncol=27)
+
+scaleNames = gsub("SPI27_", "", names(IRToutputSPI27))
+spi_keys = keys %>%
+  select(matches("SPI_135")) %>%
+  select(-c(1:5)) %>%
+  mutate(item = rownames(.)) %>%
+  gather("scale", "key", -item) %>%
+  filter(key != 0)
+
+for (i in 1:length(IRToutputSPI27)) {
+  data1 <- subset(dataSet, select = c(rownames(IRToutputSPI27[[i]]$irt$difficulty[[1]])))
+  calibrations <- IRToutputSPI27[[i]]
+  #check calibration direction
+  loadings = calibrations$fa$loadings[,1]
+  loadings = ifelse(loadings < 0, -1, 1)
+  loadings = data.frame(item = names(loadings), loadings = loadings)
+  keys_direction = spi_keys %>%
+    filter(grepl(scaleNames[i], scale)) %>%
+    full_join(loadings)
+  same = sum(keys_direction$key == keys_direction$loadings)
+  if(same == 0) data1[,1:ncol(data1)] = apply(data1[,1:ncol(data1)], 2, function(x) max(x, na.rm=TRUE) + 1 - x)
+  if (same > 0 & same < 5) print("Error in loadings")
+  scored <- scoreIrt(calibrations, data1, keys = NULL, cut = 0)
+  SPIirtScores[,i] <- scored$theta1
+}
+
+SPIirtScores <- as.data.frame(SPIirtScores)
+colnames(SPIirtScores) = spi_27_names
+
+# add IRT scores to data
+data = cbind(select(data, -starts_with("q_")),
+             SPIirtScores,
+             select(data, starts_with("q_")))
 
 # Save cleaned data -------------------------------------------------------
 
-save(data_scored, file = here("output/data_cleaned.Rdata"))
+save(data, file = here("output/data_cleaned.Rdata"))

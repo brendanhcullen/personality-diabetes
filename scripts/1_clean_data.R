@@ -46,14 +46,14 @@ data = data %>%
 # recode all education variables (for self, parent 1, parent 2)
 recode_edu_vars = function(x){
   x = case_when(
-    x == "less12yrs" ~ "6", 
-    x == "HSgrad" ~ "12", 
-    x == "SomeCollege" ~ "14", 
-    x == "CurrentInUniv" ~ "14", 
-    x == "AssociateDegree" ~ "14", 
-    x == "CollegeDegree" ~ "16", 
-    x == "InGradOrProSchool" ~ "18", 
-    x == "GradOrProDegree" ~ "20")
+    x == "less12yrs" ~ "1", 
+    x == "HSgrad" ~ "2", 
+    x == "SomeCollege" ~ "3", 
+    x == "CurrentInUniv" ~ "4", 
+    x == "AssociateDegree" ~ "5", 
+    x == "CollegeDegree" ~ "6", 
+    x == "InGradOrProSchool" ~ "7", 
+    x == "GradOrProDegree" ~ "8")
   
   x = as.numeric(x)
 }
@@ -71,7 +71,7 @@ data = data %>%
 
 # use parent_ses for respondents under age 18 or current students over 18; otherwise use self_ses
 data = data %>% 
-  mutate(which_ses = ifelse(age <= 18 | (age > 18 & jobstatus == "student"), 
+  mutate(which_ses = ifelse(age <= 18 | (dplyr::between(age, 19, 26) & jobstatus == "student"), 
                             "parent", 
                             "self"),
          ses = ifelse(which_ses == "self", 

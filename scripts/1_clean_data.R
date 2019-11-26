@@ -42,7 +42,7 @@ data = data %>%
   mutate(n_missing_135 = apply(.[,spi_135_names], 1, function(x) sum(is.na(x)))) %>%  
   filter(!is.na(diabetes), # only people who responsed to diabetes question
          country == "USA", # only USA data
-         n_missing_135 < min_responses_allowed) %>%  # only people with at least 27 responses on SPI-135 items
+         n_missing_135 <= 135 - min_responses_allowed) %>%  # only people with at least 27 responses on SPI-135 items
   select(-n_missing_135)
 
 # Wrangle demographic vars ------------------------------------------------

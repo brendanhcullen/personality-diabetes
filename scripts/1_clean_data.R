@@ -35,9 +35,10 @@ rm(toydata)
 source(here("src/personality_scale_names.R"))
 
 # min number of responses to SPI-135 items required to be included in analysis
-min_responses_allowed = 27
+min_responses_allowed = 135
+#min_responses_allowed = 27
 
-new_data = data %>% 
+data = data %>% 
   mutate(n_missing_135 = apply(.[,spi_135_names], 1, function(x) sum(is.na(x)))) %>%  
   filter(!is.na(diabetes), # only people who responsed to diabetes question
          country == "USA", # only USA data

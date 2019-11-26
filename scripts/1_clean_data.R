@@ -45,65 +45,6 @@ data = data %>%
          n_missing_135 <= 135 - min_responses_allowed) %>%  # only people with at least 27 responses on SPI-135 items
   select(-n_missing_135)
 
-# Wrangle demographic vars ------------------------------------------------
-
-## SES
-
-# make sure occupational variables are numeric
-data = data %>%
-  mutate_at(vars(matches("^(p)\\d(occ)")), as.numeric)
-
-# recode all education variables (for self, parent 1, parent 2)
-recode_edu_vars = function(x){
-  x = case_when(
-    x == "less12yrs" ~ "1", 
-    x == "HSgrad" ~ "2", 
-    x == "SomeCollege" ~ "3", 
-    x == "CurrentInUniv" ~ "4", 
-    x == "AssociateDegree" ~ "5", 
-    x == "CollegeDegree" ~ "6", 
-    x == "InGradOrProSchool" ~ "7", 
-    x == "GradOrProDegree" ~ "8")
-  
-  x = as.numeric(x)
-}
-
-data = data %>% 
-  mutate_at(vars(matches("edu")), recode_edu_vars)
-
-rm(recode_edu_vars)
-
-# create composite SES vars for self (referring to actual respondent) and parent (average of p1 and p2 vars)
-data = data %>%
-  mutate_at(vars(matches("edu|occ")), scale) %>% # standardize all SES variables of interest
-  mutate(self_ses = rowMeans(.[,c("education", "occPrestige", "occIncomeEst")], na.rm = TRUE),
-         parent_ses = rowMeans(.[,grepl("p1|p2", names(.))], na.rm = TRUE))
-
-# use parent_ses for respondents under age 18 or current students over 18; otherwise use self_ses
-data = data %>% 
-  mutate(which_ses = ifelse(age <= 18 | (dplyr::between(age, 19, 26) & jobstatus == "student"), 
-                            "parent", 
-                            "self"),
-         ses = ifelse(which_ses == "self", 
-                      self_ses, 
-                      parent_ses))
-
-# select only relevant demographic vars and filter out people with missing demographic data
-data = data %>% 
-  select(RID, # ID numnber
-         diabetes, # diabetes diagnosis
-         age, ses, ethnic, # relevant demographic vars
-         starts_with("q_")) %>%  # all personality vars
-  filter(!is.na(age), 
-         !is.na(ses),
-         !is.nan(ses), # filter out NaN's as well (NaN's may have been created in addition to NA's, as this is a derived composite variable)
-         !is.na(ethnic))
-
-# Fix variable types
-data = data %>% 
-  mutate(diabetes = as.factor(diabetes),
-         ethnic = as.factor(ethnic))
-
 
 # Prep for SPI scoring ----------------------------------------------------
 

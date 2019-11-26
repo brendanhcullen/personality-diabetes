@@ -63,15 +63,16 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   pred.mat = as.matrix(pred.mat)
   
   #use matrix algebra to apply each linear transformation (coef vector) to columns
-  predicted.values = lapply(models, FUN = function(x) estimate.pred(pred.mat, coef = x, id = id))
+  predicted.values = apply(models, 2, FUN = function(x) estimate.pred(pred.mat, coef = x, id = id))
   #make that a data.frame
-  predicted.values <- data.frame(matrix(unlist(predicted.values), ncol=length(predicted.values), byrow=F))
+  #predicted.values <- data.frame(matrix(unlist(predicted.values), ncol=length(predicted.values), byrow=F))
   
   # calculate mean of each VOI
   means = sapply(VOI, FUN = function(x) mean(data[,x], na.rm=T))
   
-  # for each VOI, take that vector in the original data and subtract the predicted value; then add the mean of that variable back in
-  resid = sapply(seq_along(VOI), FUN = function(x) (data[,VOI[x]] - predicted.values[,x]) + means[x])
+  # for each VOI, take that vector in the original data and subtract the predicted value; 
+  # then add the mean of that variable back in
+  resid = sapply(seq_along(VOI), FUN = function(x) data[,VOI[x]] - predicted.values[,VOI[x]] + means[VOI[x]])
   # replace the existing variables with the residualized ones
   newdata = data
   newdata[,VOI] = resid

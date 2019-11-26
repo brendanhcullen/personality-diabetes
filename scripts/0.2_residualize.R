@@ -32,6 +32,7 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   try(if(length(VOI_not_numeric) > 0) stop("Some variables of interest are not numeric."))
   
   try(if(!(is.data.frame(data))) stop ("data must be a data.frame."))
+  try(if(!(is.character(id))) stop ("Please provide the variable name, as a character string, for id."))
   
   # build model formula
   cov.model = paste(VTC, collapse = " + ")

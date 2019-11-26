@@ -31,6 +31,8 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   VOI_not_numeric = which(!VOI_numeric)
   try(if(length(VOI_not_numeric) > 0) stop("Some variables of interest are not numeric."))
   
+  try(if(!(is.data.frame(data))) stop ("data must be a data.frame."))
+  
   # build model formula
   cov.model = paste(VTC, collapse = " + ")
   

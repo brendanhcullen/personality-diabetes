@@ -25,11 +25,20 @@ estimate.pred = function(data.mat, coef, id){
   return(pred)
 }
 
+#function to replace NA with 0
+na.0 = function(x){
+  x[is.na(x)] = 0
+  return(x)
+}
+
 residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   #check to see VOI are all numeric
   VOI_numeric = apply(data[,VOI], 2, is.numeric)
   VOI_not_numeric = which(!VOI_numeric)
   try(if(length(VOI_not_numeric) > 0) stop("Some variables of interest are not numeric."))
+  
+  try(if(!(is.data.frame(data))) stop ("data must be a data.frame."))
+  try(if(!(is.character(id))) stop ("Please provide the variable name, as a character string, for id."))
   
   # build model formula
   cov.model = paste(VTC, collapse = " + ")
@@ -39,6 +48,7 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
     select(VTC) %>%
     mutate_if(is.numeric, center)
   data[,VTC] = data_pred
+
   
   # build model across VOI and return coefficients
   models = sapply(VOI, FUN = function(y) build.lm(y = y, x = cov.model, data = data))
@@ -46,16 +56,21 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   predictors = data[,c(id, VTC)] 
   predictors[, id] = as.character(predictors[, id])
   numeric = predictors %>%
-    select_if(is.numeric) %>%
-    mutate_all(center)
+    select_if(is.numeric)
+  if(ncol(numeric) > 0) {
+    numeric = numeric %>%
+      mutate_all(center) %>%
+      mutate_all(na.0)
+    }
   num_var = names(numeric)
-  predictors = predictors[,which(!(names(predictors) %in% num_var))]
-  predictors = predictors %>% 
+  factor_var = names(predictors)[which(!(names(predictors) %in% num_var))]
+  if(length(factor_var) > 1) {predictors = predictors %>% 
+    select(factor_var) %>%
     gather("variable", "value", -id) %>%
     unite(variable, variable, value, sep = "") %>%
     mutate(value = 1) %>%
-    spread(variable, value, fill = 0) 
-  predictors = cbind(predictors, numeric)
+    spread(variable, value, fill = 0)}
+  if(ncol(numeric) > 0) predictors = cbind(predictors, numeric)
   
   # use coefficients to estimate predicted values for everyone
   pred.mat = predictors
@@ -63,9 +78,13 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   pred.mat = as.matrix(pred.mat)
   
   #use matrix algebra to apply each linear transformation (coef vector) to columns
-  predicted.values = apply(models, 2, FUN = function(x) estimate.pred(pred.mat, coef = x, id = id))
-  #make that a data.frame
-  #predicted.values <- data.frame(matrix(unlist(predicted.values), ncol=length(predicted.values), byrow=F))
+  if(is.matrix(models)) predicted.values = apply(models, 2, FUN = function(x) estimate.pred(pred.mat, coef = x, id = id))
+  if(is.list(models)){ 
+    predicted.values = lapply(models, FUN = function(x) estimate.pred(pred.mat, coef = x, id = id))
+    #make that a data.frame
+    predicted.values <- data.frame(matrix(unlist(predicted.values), ncol=length(predicted.values), byrow=F))
+    colnames(predicted.values) = names(models)
+    }
   
   # calculate mean of each VOI
   means = sapply(VOI, FUN = function(x) mean(data[,x], na.rm=T))

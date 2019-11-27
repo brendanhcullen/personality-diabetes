@@ -36,14 +36,14 @@ source(here("src/personality_scale_names.R"))
 
 # min number of responses to SPI-135 items required to be included in analysis
 min_responses_allowed = 135
-#min_responses_allowed = 27
+min_responses_allowed = 27
 
 data = data %>% 
-  mutate(n_missing_135 = apply(.[,spi_135_names], 1, function(x) sum(is.na(x)))) %>%  
+  mutate(n_valid_135 = apply(.[,spi_135_names], 1, function(x) sum(!is.na(x)))) %>%  
   filter(!is.na(diabetes), # only people who responsed to diabetes question
          country == "USA", # only USA data
-         n_missing_135 <= 135 - min_responses_allowed) %>%  # only people with at least 27 responses on SPI-135 items
-  select(-n_missing_135)
+         n_valid_135 >= min_responses_allowed) %>%  # only people with at least 27 responses on SPI-135 items
+  select(-n_valid_135)
 
 
 # Prep for SPI scoring ----------------------------------------------------

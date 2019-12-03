@@ -17,6 +17,7 @@ source(here("scripts/0.2_residualize.R"))
 
 # read in keys for SPI scoring
 keys = read.csv(here("data/superKey.csv"), header = TRUE, row.names = 1)
+
 # Import data -------------------------------------------------------------
 
 ######################### IMPORT ACTUAL DATASET HERE ######################### 
@@ -57,9 +58,6 @@ data = data %>%
   select(spi_135_names) %>% 
   cbind(select(data, -starts_with("q_")), .)
 
-rm(min_n_valid, spi_names, spi_135_names)
-
-
 # Score SPI-5 (i.e. Big 5) ------------------------------------------------
 
 spi_5_scores = score_spi_5(data = data, keys = keys)
@@ -90,7 +88,13 @@ data = cbind(select(data, -starts_with("q_")),
 
 # Residualize -------------------------------------------------------------
 
+# Try to break it!
 
+VTC = c("age", "gender", "relstatus") # variables to control
+VOI = c("agree", "neuro") # variables of interest
+id = "RID" # name of ID variable
+
+newdata = residualize(VOI = VOI, VTC = VTC, data = data, id = id)
 
 # Save cleaned data -------------------------------------------------------
 

@@ -32,6 +32,7 @@ na.0 = function(x){
 }
 
 residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
+  newdata = data
   #check to see VOI are all numeric
   if(length(VOI) > 1) VOI_numeric = apply(data[,VOI], 2, is.numeric)
   if(length(VOI) == 1) VOI_numeric = is.numeric(data[,VOI])
@@ -97,7 +98,6 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   if(length(VOI) > 1) resid = sapply(seq_along(VOI), FUN = function(x) data[,VOI[x]] - predicted.values[,VOI[x]] + means[VOI[x]])
   if(length(VOI) == 1) resid = data[,VOI] - predicted.values + means
   # replace the existing variables with the residualized ones
-  newdata = data
   newdata[,VOI] = resid
   # return the new data frame
   return(newdata)

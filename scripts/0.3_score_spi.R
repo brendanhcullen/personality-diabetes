@@ -1,0 +1,132 @@
+
+# load libraries
+library(tidyverse)
+library(psych)
+
+
+# user inputs -------------------------------------------------------------
+
+# load in toy dataset
+load(here("data/toydata.Rdata"))
+
+# add RID variable to be consistent with real SAPA data
+data = toydata %>% 
+  rownames_to_column() %>% 
+  rename(RID = rowname)
+
+rm(toydata)
+
+keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1)
+
+# Function: Get SPI names -------------------------------------------------
+
+get_spi_names = function(keys){
+  
+  # extract SPI names
+  spi_names = keys %>% 
+    clean_names() %>% 
+    select(contains("spi_135_27_5")) %>% 
+    names() %>% 
+    gsub("spi_135_27_5_", "", .)
+  
+  spi_5_names = spi_names[1:5]
+  
+  spi_27_names = spi_names[6:32]
+  
+  spi_135_names = keys %>% 
+    clean_names() %>% 
+    select(contains("spi_135_27_5")) %>% 
+    rownames_to_column() %>% 
+    filter(rowname %in% grep("q_*", rownames(keys), value = TRUE)) %>% 
+    mutate_if(is.numeric, abs) %>% 
+    mutate(row_sum = rowSums(.[,-1])) %>% 
+    filter(!row_sum == 0) %>% 
+    pull(rowname)
+  
+  return(list(spi_5 = spi_5_names, 
+              spi_27 = spi_27_names,
+              spi_135 = spi_135_names))
+}
+
+
+# Function: Score Big 5 ---------------------------------------------------
+
+score_spi_5 = function(data, keys){
+  
+  spi_names = get_spi_names(keys)
+  
+  data_spi_135 = data %>%
+      select(spi_names$spi_135)
+    
+  keys = keys[names(data_spi_135), ] %>% 
+      select(contains("spi_135"))
+    
+  spi_5_keys = keys %>% 
+      select(1:5)
+    
+  # score the Big 5 scales
+  scored = scoreItems(spi_5_keys, data_spi_135)
+  spi_5_scores = as.data.frame(scored$scores)
+  names(spi_5_scores) = spi_names$spi_5
+    
+  return(spi_5_scores)
+}
+
+# test function
+spi_5_scores = score_spi_5(data, keys)
+
+
+# Score SPI-27 (using IRT) ------------------------------------------------
+
+# Read in superKey data again (with uppercase names in order to be compatible with IRT code below)
+keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1)
+
+
+######## ALL IRT CODE WAS COPIED FROM SARA'S SAPA BMI PROJECT ######## 
+# more info here: https://github.com/sjweston/SAPA_BMI/tree/master/irt_troubleshoot
+
+score_spi_27 = function(data, keys, path_to_IRT_calibrations){
+
+  # load IRT calibrations
+  load(path_to_IRT_calibrations)
+  
+  # IRT score
+  dataSet <- subset(data, select = c(orderForItems))
+  
+  SPIirtScores <- matrix(nrow=dim(dataSet)[1], ncol=27)
+  
+  scaleNames = gsub("SPI27_", "", names(IRToutputSPI27))
+  spi_keys = keys %>%
+    select(matches("SPI_135")) %>%
+    select(-c(1:5)) %>%
+    mutate(item = rownames(.)) %>%
+    gather("scale", "key", -item) %>%
+    filter(key != 0)
+  
+  for (i in 1:length(IRToutputSPI27)) {
+    data1 <- subset(dataSet, select = c(rownames(IRToutputSPI27[[i]]$irt$difficulty[[1]])))
+    calibrations <- IRToutputSPI27[[i]]
+    #check calibration direction
+    loadings = calibrations$fa$loadings[,1]
+    loadings = ifelse(loadings < 0, -1, 1)
+    loadings = data.frame(item = names(loadings), loadings = loadings)
+    keys_direction = spi_keys %>%
+      filter(grepl(scaleNames[i], scale)) %>%
+      full_join(loadings)
+    same = sum(keys_direction$key == keys_direction$loadings)
+    if(same == 0) data1[,1:ncol(data1)] = apply(data1[,1:ncol(data1)], 2, function(x) max(x, na.rm=TRUE) + 1 - x)
+    if (same > 0 & same < 5) print("Error in loadings")
+    scored <- scoreIrt(calibrations, data1, keys = NULL, cut = 0)
+    SPIirtScores[,i] <- scored$theta1
+  }
+  
+  SPIirtScores <- as.data.frame(SPIirtScores)
+  spi_names = get_spi_names(keys) 
+  colnames(SPIirtScores) = spi_names$spi_27
+  
+ return(SPIirtScores)
+}
+
+# test the function
+path_to_IRT_calibrations = here("data/IRTinfoSPI27.rdata")
+spi_27_scores = score_spi_27(data = data, keys = keys, path_to_IRT_calibrations = path_to_IRT_calibrations)

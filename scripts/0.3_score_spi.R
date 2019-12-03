@@ -1,22 +1,17 @@
 
-# load libraries
-library(tidyverse)
-library(psych)
-
-
 # user inputs -------------------------------------------------------------
 
-# load in toy dataset
-load(here("data/toydata.Rdata"))
-
-# add RID variable to be consistent with real SAPA data
-data = toydata %>% 
-  rownames_to_column() %>% 
-  rename(RID = rowname)
-
-rm(toydata)
-
-keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1)
+# # load in toy dataset
+# load(here("data/toydata.Rdata"))
+# 
+# # add RID variable to be consistent with real SAPA data
+# data = toydata %>% 
+#   rownames_to_column() %>% 
+#   rename(RID = rowname)
+# 
+# rm(toydata)
+# 
+# keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1)
 
 # Function: Get SPI names -------------------------------------------------
 
@@ -72,14 +67,14 @@ score_spi_5 = function(data, keys){
   return(spi_5_scores)
 }
 
-# test function
-spi_5_scores = score_spi_5(data, keys)
+# # test function
+# spi_5_scores = score_spi_5(data, keys)
 
 
 # Score SPI-27 (using IRT) ------------------------------------------------
 
 # Read in superKey data again (with uppercase names in order to be compatible with IRT code below)
-keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1)
+# keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1)
 
 
 ######## ALL IRT CODE WAS COPIED FROM SARA'S SAPA BMI PROJECT ######## 
@@ -127,6 +122,6 @@ score_spi_27 = function(data, keys, path_to_IRT_calibrations){
  return(SPIirtScores)
 }
 
-# test the function
-path_to_IRT_calibrations = here("data/IRTinfoSPI27.rdata")
-spi_27_scores = score_spi_27(data = data, keys = keys, path_to_IRT_calibrations = path_to_IRT_calibrations)
+# # test the function
+# path_to_IRT_calibrations = here("data/IRTinfoSPI27.rdata")
+# spi_27_scores = score_spi_27(data = data, keys = keys, path_to_IRT_calibrations = path_to_IRT_calibrations)

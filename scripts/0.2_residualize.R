@@ -33,7 +33,8 @@ na.0 = function(x){
 
 residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   #check to see VOI are all numeric
-  VOI_numeric = apply(data[,VOI], 2, is.numeric)
+  if(length(VOI) > 1) VOI_numeric = apply(data[,VOI], 2, is.numeric)
+  if(length(VOI) == 1) VOI_numeric = is.numeric(data[,VOI])
   VOI_not_numeric = which(!VOI_numeric)
   try(if(length(VOI_not_numeric) > 0) stop("Some variables of interest are not numeric."))
   
@@ -51,7 +52,8 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
 
   
   # build model across VOI and return coefficients
-  models = sapply(VOI, FUN = function(y) build.lm(y = y, x = cov.model, data = data))
+  if(length(VOI) > 1) models = sapply(VOI, FUN = function(y) build.lm(y = y, x = cov.model, data = data))
+  if(length(VOI) == 1) models = build.lm(y = VOI, x = cov.model, data = data)
   # get matrix of predictors
   predictors = data[,c(id, VTC)] 
   predictors[, id] = as.character(predictors[, id])
@@ -84,14 +86,16 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
     #make that a data.frame
     predicted.values <- data.frame(matrix(unlist(predicted.values), ncol=length(predicted.values), byrow=F))
     colnames(predicted.values) = names(models)
-    }
+  }
+  if(is.vector(models)) predicted.values = estimate.pred(pred.mat, coef = models, id = id)
   
   # calculate mean of each VOI
   means = sapply(VOI, FUN = function(x) mean(data[,x], na.rm=T))
   
   # for each VOI, take that vector in the original data and subtract the predicted value; 
   # then add the mean of that variable back in
-  resid = sapply(seq_along(VOI), FUN = function(x) data[,VOI[x]] - predicted.values[,VOI[x]] + means[VOI[x]])
+  if(length(VOI) > 1) resid = sapply(seq_along(VOI), FUN = function(x) data[,VOI[x]] - predicted.values[,VOI[x]] + means[VOI[x]])
+  if(length(VOI) == 1) resid = data[,VOI] - predicted.values + means
   # replace the existing variables with the residualized ones
   newdata = data
   newdata[,VOI] = resid

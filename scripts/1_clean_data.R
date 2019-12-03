@@ -8,9 +8,15 @@ library(here)
 library(tidyverse)
 library(psych)
 library(janitor)
-library(dataverse)
-library(data.table)
 
+
+# Source pre-processing functions and import SPI keys ---------------------
+
+source(here("scripts/0.3_score_spi.R"))
+source(here("scripts/0.2_residualize.R"))
+
+# read in keys for SPI scoring
+keys = read.csv(here("data/superKey.csv"), header = TRUE, row.names = 1)
 # Import data -------------------------------------------------------------
 
 ######################### IMPORT ACTUAL DATASET HERE ######################### 
@@ -31,50 +37,32 @@ rm(toydata)
 
 # Filter data -------------------------------------------------------------
 
-# import SPI scale names
-source(here("src/personality_scale_names.R"))
+# get names of SPI-135 items
+spi_names = get_spi_names(keys)
+spi_135_names = spi_names$spi_135
 
 # min number of responses to SPI-135 items required to be included in analysis
-min_responses_allowed = 135
-min_responses_allowed = 27
+min_n_valid = 27
+min_n_valid = 10
 
 data = data %>% 
   mutate(n_valid_135 = apply(.[,spi_135_names], 1, function(x) sum(!is.na(x)))) %>%  
   filter(!is.na(diabetes), # only people who responsed to diabetes question
          country == "USA", # only USA data
-         n_valid_135 >= min_responses_allowed) %>%  # only people with at least 27 responses on SPI-135 items
+         n_valid_135 >= min_n_valid) %>%  # only people with at least 27 responses on SPI-135 items
   select(-n_valid_135)
-
-
-# Prep for SPI scoring ----------------------------------------------------
-
-# import SPI scale names
-source(here("src/personality_scale_names.R"))
-
-# Read in superKey data
-keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1) %>% 
-  clean_names()
 
 # only retain SPI items that are part of the SPI-135
 data = data %>% 
   select(spi_135_names) %>% 
   cbind(select(data, -starts_with("q_")), .)
 
-# filter for rows that correspond to variables in the current data and select only SPI columns
-keys = keys[names(data), ] %>% 
-  select(contains("spi_135"))
+rm(min_n_valid, spi_names, spi_135_names)
 
 
 # Score SPI-5 (i.e. Big 5) ------------------------------------------------
 
-# get keys for Big 5
-spi_5_keys = keys %>% 
-  select(1:5)
-
-# score the Big 5 scales
-scored = scoreItems(spi_5_keys, data)
-spi_5_scores = as.data.frame(scored$scores)
-names(spi_5_scores) = spi_5_names
+spi_5_scores = score_spi_5(data = data, keys = keys)
 
 # add SPI-5 scores to data
 data = cbind(select(data, -starts_with("q_")),
@@ -84,52 +72,25 @@ data = cbind(select(data, -starts_with("q_")),
 
 # Score SPI-27 (using IRT) ------------------------------------------------
 
-# load info on IRT calibrations
-load(here("data/IRTinfoSPI27.rdata")) # this file is in .gitignore for now
-
-# Read in superKey data again (with uppercase names in order to be compatible with IRT code below)
-keys = read.csv("data/superKey.csv", header = TRUE, row.names = 1)
-
-######## ALL IRT CODE WAS COPIED FROM SARA'S SAPA BMI PROJECT ######## 
-# more info here: https://github.com/sjweston/SAPA_BMI/tree/master/irt_troubleshoot
-
-# IRT score
-dataSet <- subset(data, select = c(orderForItems))
-
-SPIirtScores <- matrix(nrow=dim(dataSet)[1], ncol=27)
-
-scaleNames = gsub("SPI27_", "", names(IRToutputSPI27))
-spi_keys = keys %>%
-  select(matches("SPI_135")) %>%
-  select(-c(1:5)) %>%
-  mutate(item = rownames(.)) %>%
-  gather("scale", "key", -item) %>%
-  filter(key != 0)
-
-for (i in 1:length(IRToutputSPI27)) {
-  data1 <- subset(dataSet, select = c(rownames(IRToutputSPI27[[i]]$irt$difficulty[[1]])))
-  calibrations <- IRToutputSPI27[[i]]
-  #check calibration direction
-  loadings = calibrations$fa$loadings[,1]
-  loadings = ifelse(loadings < 0, -1, 1)
-  loadings = data.frame(item = names(loadings), loadings = loadings)
-  keys_direction = spi_keys %>%
-    filter(grepl(scaleNames[i], scale)) %>%
-    full_join(loadings)
-  same = sum(keys_direction$key == keys_direction$loadings)
-  if(same == 0) data1[,1:ncol(data1)] = apply(data1[,1:ncol(data1)], 2, function(x) max(x, na.rm=TRUE) + 1 - x)
-  if (same > 0 & same < 5) print("Error in loadings")
-  scored <- scoreIrt(calibrations, data1, keys = NULL, cut = 0)
-  SPIirtScores[,i] <- scored$theta1
-}
-
-SPIirtScores <- as.data.frame(SPIirtScores)
-colnames(SPIirtScores) = spi_27_names
+path_to_IRT_calibrations = here("data/IRTinfoSPI27.rdata") # specify where IRT calibrations file is saved
+spi_27_scores = score_spi_27(data = data, 
+                             keys = keys, 
+                             path_to_IRT_calibrations = path_to_IRT_calibrations)
 
 # add IRT scores to data
 data = cbind(select(data, -starts_with("q_")),
-             SPIirtScores,
+             spi_27_scores,
              select(data, starts_with("q_")))
+
+
+
+# Impute missing data -----------------------------------------------------
+
+
+
+# Residualize -------------------------------------------------------------
+
+
 
 # Save cleaned data -------------------------------------------------------
 

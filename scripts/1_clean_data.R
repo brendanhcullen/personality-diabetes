@@ -109,7 +109,7 @@ data = data %>%
   mutate_at(c("ethnic", "jobstatus", "education", "p1edu", "p2edu"), as.factor)
 
 # extract residuals 
-newdata = residualize(VOI = VOI, VTC = VTC, data = data, id = id)
+data_res = residualize(VOI = VOI, VTC = VTC, data = data, id = id)
 
 # Save cleaned data -------------------------------------------------------
 

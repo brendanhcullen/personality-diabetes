@@ -88,7 +88,6 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
     predicted.values <- data.frame(matrix(unlist(predicted.values), ncol=length(predicted.values), byrow=F))
     colnames(predicted.values) = names(models)
   }
-  if(is.vector(models)) predicted.values = estimate.pred(pred.mat, coef = models, id = id)
   
   # calculate mean of each VOI
   means = sapply(VOI, FUN = function(x) mean(data[,x], na.rm=T))

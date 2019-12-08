@@ -38,9 +38,12 @@ rm(toydata)
 
 # Filter data -------------------------------------------------------------
 
-# get names of SPI-135 items
+# get SPI names
 spi_names = get_spi_names(keys)
+spi_5_names = spi_names$spi_5
+spi_27_names = spi_names$spi_27
 spi_135_names = spi_names$spi_135
+
 
 # min number of responses to SPI-135 items required to be included in analysis
 min_n_valid = 27
@@ -88,12 +91,24 @@ data = cbind(select(data, -starts_with("q_")),
 
 # Residualize -------------------------------------------------------------
 
-# Try to break it!
+demographic_vars = c(
+              "age", # age
+              "ethnic",  # ethnicity
+              "jobstatus", # current job status
+              "education", "occPrestige", "occIncomeEst", # self SES
+              "p1edu", "p1occPrestige", "p1occIncomeEst", # parent 1 SES
+              "p2edu", "p2occPrestige", "p2occIncomeEst") # parent 2 SES
 
-VTC = c("age", "gender", "relstatus") # variables to control
-VOI = c("agree", "neuro") # variables of interest
+VTC = demographic_vars # variables to control for (age, ethnicity, SES)
+
+VOI = c(spi_5_names, spi_27_names, spi_135_names) # variables of interest
+
 id = "RID" # name of ID variable
 
+data = data %>% 
+  mutate_at(c("ethnic", "jobstatus", "education", "p1edu", "p2edu"), as.factor)
+
+# extract residuals 
 newdata = residualize(VOI = VOI, VTC = VTC, data = data, id = id)
 
 # Save cleaned data -------------------------------------------------------

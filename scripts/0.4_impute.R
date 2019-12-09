@@ -1,12 +1,5 @@
 
-
-# Load libraries ----------------------------------------------------------
-
-library(missMDA)
-library(psych)
-library(tidyverse)
-
-vars = all_spi_names
+# create a function to impute missing SPI data
 
 impute_missing = function(data = NULL, vars_to_impute = NULL){
   
@@ -17,8 +10,7 @@ impute_missing = function(data = NULL, vars_to_impute = NULL){
   
   # select only variables to impute
   data_to_impute = data %>% 
-    select(vars_to_impute) %>% 
-    sample_n(1000) # TEMPORARY, TO REDUCE RUN TIME
+    select(vars_to_impute)
   
   # fa.parallel
   pc_number <- fa.parallel(data_to_impute)$ncomp
@@ -43,5 +35,3 @@ impute_missing = function(data = NULL, vars_to_impute = NULL){
   return(data_imputed)
 }
 
-
-imputed_data = impute_missing(data = data, vars_to_impute = all_spi_names)

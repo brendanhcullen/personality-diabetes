@@ -8,12 +8,14 @@ library(here)
 library(tidyverse)
 library(psych)
 library(janitor)
+library(missMDA)
 
 
 # Source pre-processing functions and import SPI keys ---------------------
 
 source(here("scripts/0.3_score_spi.R"))
 source(here("scripts/0.2_residualize.R"))
+source(here("scripts/0.4_impute.R"))
 
 # read in keys for SPI scoring
 keys = read.csv(here("data/superKey.csv"), header = TRUE, row.names = 1)
@@ -83,12 +85,6 @@ data = cbind(select(data, -starts_with("q_")),
              spi_27_scores,
              select(data, starts_with("q_")))
 
-
-
-# Impute missing data -----------------------------------------------------
-
-
-
 # Residualize -------------------------------------------------------------
 
 demographic_vars = c(
@@ -110,6 +106,17 @@ data = data %>%
 
 # extract residuals 
 data_res = residualize(VOI = VOI, VTC = VTC, data = data, id = id)
+
+# Impute missing data -----------------------------------------------------
+
+# impute missing SPI data
+vars_to_impute = all_spi_names
+
+imputed_data = impute_missing(data = data %>% sample_n(1000), 
+                              vars_to_impute = vars_to_impute)
+
+# replace missing vlaue with imputed values
+data[,vars_to_impute] = imputed_data
 
 # Save cleaned data -------------------------------------------------------
 

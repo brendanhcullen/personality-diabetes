@@ -5,8 +5,8 @@ impute_missing = function(data = NULL, vars_to_impute = NULL){
   newdata = data
   
   # check to see if variables to impute are all numeric
-  if(length(vars) > 1) vars_numeric = apply(data[,vars], 2, is.numeric)
-  if(length(vars) == 1) vars_numeric = is.numeric(data[,vars])
+  if(length(vars_to_impute) > 1) vars_numeric = apply(data[,vars_to_impute], 2, is.numeric)
+  if(length(vars_to_impute) == 1) vars_numeric = is.numeric(data[,vars_to_impute])
   vars_not_numeric = which(!vars_numeric)
   try(if(length(vars_not_numeric) > 0) stop("Some variables to impute are not numeric."))
   

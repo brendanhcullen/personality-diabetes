@@ -43,11 +43,11 @@ spi_names = get_spi_names(keys)
 spi_5_names = spi_names$spi_5
 spi_27_names = spi_names$spi_27
 spi_135_names = spi_names$spi_135
-
+all_spi_names = unlist(spi_names, use.names = FALSE)
 
 # min number of responses to SPI-135 items required to be included in analysis
-min_n_valid = 27
-min_n_valid = 10
+#min_n_valid = 27
+min_n_valid = 10 # just for toy data
 
 data = data %>% 
   mutate(n_valid_135 = apply(.[,spi_135_names], 1, function(x) sum(!is.na(x)))) %>%  
@@ -101,7 +101,7 @@ demographic_vars = c(
 
 VTC = demographic_vars # variables to control for (age, ethnicity, SES)
 
-VOI = c(spi_5_names, spi_27_names, spi_135_names) # variables of interest
+VOI = all_spi_names # variables of interest
 
 id = "RID" # name of ID variable
 

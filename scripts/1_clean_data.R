@@ -95,29 +95,21 @@ demographic_vars = c(
               "p1edu", "p1occPrestige", "p1occIncomeEst", # parent 1 SES
               "p2edu", "p2occPrestige", "p2occIncomeEst") # parent 2 SES
 
-VTC = demographic_vars # variables to control for (age, ethnicity, SES)
-
-VOI = all_spi_names # variables of interest
-
-id = "RID" # name of ID variable
-
+# convert relevant variables to factors
 data = data %>% 
   mutate_at(c("ethnic", "jobstatus", "education", "p1edu", "p2edu"), as.factor)
 
 # extract residuals 
-data = residualize(VOI = VOI, VTC = VTC, data = data, id = id)
+data = residualize(VOI = all_spi_names, VTC = demographic_vars, data = data, id = "RID")
 
 # Impute missing data -----------------------------------------------------
-
-# specify all SPI vars as variables to impute
-vars_to_impute = all_spi_names
 
 # temporary, to reduce run time
 data = data %>% 
   sample_n(1000)
 
 # impute missing SPI data
-data = impute_missing(data = data, vars_to_impute = vars_to_impute)
+data = impute_missing(data = data, vars_to_impute = all_spi_names)
 
 # Save cleaned data -------------------------------------------------------
 

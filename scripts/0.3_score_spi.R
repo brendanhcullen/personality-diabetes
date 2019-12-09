@@ -54,7 +54,8 @@ score_spi_5 = function(data, keys){
 }
 
 
-# Score SPI-27 (using IRT) ------------------------------------------------
+
+# Function: Score SPI-27 (using IRT) --------------------------------------
 
 ######## ALL IRT CODE WAS COPIED FROM SARA'S SAPA BMI PROJECT ######## 
 # more info here: https://github.com/sjweston/SAPA_BMI/tree/master/irt_troubleshoot

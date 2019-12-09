@@ -1,0 +1,47 @@
+
+
+# Load libraries ----------------------------------------------------------
+
+library(missMDA)
+library(psych)
+library(tidyverse)
+
+vars = all_spi_names
+
+impute_missing = function(data = NULL, vars_to_impute = NULL){
+  
+  if(length(vars) > 1) vars_numeric = apply(data[,vars], 2, is.numeric)
+  if(length(vars) == 1) vars_numeric = is.numeric(data[,vars])
+  vars_not_numeric = which(!vars_numeric)
+  try(if(length(vars_not_numeric) > 0) stop("Some variables to impute are not numeric."))
+  
+  # select only variables to impute
+  data_to_impute = data %>% 
+    select(vars_to_impute) %>% 
+    sample_n(1000) # TEMPORARY, TO REDUCE RUN TIME
+  
+  # fa.parallel
+  pc_number <- fa.parallel(data_to_impute)$ncomp
+  
+  # single imputation
+  sipca_local = function(data_df, num_components)
+  {
+    single_impute = imputePCA(X = data_df,
+                              ncp = num_components,
+                              method = "Regularized", # default
+                              coeff.ridge = 1, # default (see documentation)
+                              maxiter = 1000 # default; INCREASE THIS???
+    )
+    
+    imputed_data = as.data.frame(single_impute$completeObs)
+    
+    return(imputed_data)
+  }
+  
+  data_imputed = sipca_local(data_df = data_to_impute, num_components = pc_number)
+  
+  return(data_imputed)
+}
+
+
+imputed_data = impute_missing(data = data, vars_to_impute = all_spi_names)

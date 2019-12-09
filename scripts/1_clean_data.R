@@ -105,7 +105,7 @@ data = data %>%
   mutate_at(c("ethnic", "jobstatus", "education", "p1edu", "p2edu"), as.factor)
 
 # extract residuals 
-data_res = residualize(VOI = VOI, VTC = VTC, data = data, id = id)
+data = residualize(VOI = VOI, VTC = VTC, data = data, id = id)
 
 # Impute missing data -----------------------------------------------------
 

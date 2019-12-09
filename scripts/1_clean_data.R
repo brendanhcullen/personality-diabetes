@@ -112,11 +112,8 @@ data_res = residualize(VOI = VOI, VTC = VTC, data = data, id = id)
 # impute missing SPI data
 vars_to_impute = all_spi_names
 
-imputed_data = impute_missing(data = data %>% sample_n(1000), 
+data = impute_missing(data = data %>% sample_n(1000), 
                               vars_to_impute = vars_to_impute)
-
-# replace missing vlaue with imputed values
-data[,vars_to_impute] = imputed_data
 
 # Save cleaned data -------------------------------------------------------
 

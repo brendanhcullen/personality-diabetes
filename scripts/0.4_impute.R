@@ -2,7 +2,9 @@
 # create a function to impute missing SPI data
 
 impute_missing = function(data = NULL, vars_to_impute = NULL){
+  newdata = data
   
+  # check to see if variables to impute are all numeric
   if(length(vars) > 1) vars_numeric = apply(data[,vars], 2, is.numeric)
   if(length(vars) == 1) vars_numeric = is.numeric(data[,vars])
   vars_not_numeric = which(!vars_numeric)
@@ -32,6 +34,8 @@ impute_missing = function(data = NULL, vars_to_impute = NULL){
   
   data_imputed = sipca_local(data_df = data_to_impute, num_components = pc_number)
   
-  return(data_imputed)
+  newdata[,vars_to_impute] = data_imputed
+  
+  return(newdata)
 }
 

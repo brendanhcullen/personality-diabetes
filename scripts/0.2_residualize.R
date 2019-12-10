@@ -19,9 +19,12 @@ build.lm = function(y, x, data){
 # function to esimate predicted values from raw data and coefficients
 estimate.pred = function(data.mat, coef, id){
   var = names(coef)
+  id_vals = data.mat[,id]
   var[1] = id
   data.mat = data.mat[, var]
+  data.mat[,1] = 1
   pred = data.mat %*% as.matrix(coef)
+  row.names(pred) = id_vals
   return(pred)
 }
 
@@ -75,10 +78,13 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
     spread(variable, value, fill = 0)}
   if(ncol(numeric) > 0) predictors = cbind(predictors, numeric)
   
+  predictors = predictors[order(predictors[,id]), ]
+  data = data[order(data[,id]), ]
+  
   # use coefficients to estimate predicted values for everyone
   pred.mat = predictors
-  pred.mat[,id] = 1
   pred.mat = as.matrix(pred.mat)
+  row.names(pred.mat) = as.numeric(predictors$RID)
   
   #use matrix algebra to apply each linear transformation (coef vector) to columns
   if(is.matrix(models)) predicted.values = apply(models, 2, FUN = function(x) estimate.pred(pred.mat, coef = x, id = id))
@@ -88,7 +94,7 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
     predicted.values <- data.frame(matrix(unlist(predicted.values), ncol=length(predicted.values), byrow=F))
     colnames(predicted.values) = names(models)
   }
-  if(is.vector(models)) predicted.values = estimate.pred(pred.mat, coef = models, id = id)
+  #if(is.vector(models)) predicted.values = estimate.pred(pred.mat, coef = models, id = id)
   
   # calculate mean of each VOI
   means = sapply(VOI, FUN = function(x) mean(data[,x], na.rm=T))

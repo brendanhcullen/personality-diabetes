@@ -19,10 +19,10 @@ build.lm = function(y, x, data){
 # function to esimate predicted values from raw data and coefficients
 estimate.pred = function(data.mat, coef, id){
   var = names(coef)
-  id_vals = data.mat[,id]
+  id_vals = row.names(data.mat)
   var[1] = id
-  data.mat = data.mat[, var]
-  data.mat[,1] = 1
+  data.mat = data.mat[, var[-1]]
+  data.mat = cbind(1, data.mat)
   pred = data.mat %*% as.matrix(coef)
   row.names(pred) = id_vals
   return(pred)
@@ -82,17 +82,18 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   data = data[order(data[,id]), ]
   
   # use coefficients to estimate predicted values for everyone
-  pred.mat = predictors
+  pred.mat = predictors %>% select(-id)
   pred.mat = as.matrix(pred.mat)
-  row.names(pred.mat) = as.numeric(predictors$RID)
+  row.names(pred.mat) = predictors$RID
   
   #use matrix algebra to apply each linear transformation (coef vector) to columns
   if(is.matrix(models)) predicted.values = apply(models, 2, FUN = function(x) estimate.pred(pred.mat, coef = x, id = id))
   if(is.list(models)){ 
     predicted.values = lapply(models, FUN = function(x) estimate.pred(pred.mat, coef = x, id = id))
     #make that a data.frame
-    predicted.values <- data.frame(matrix(unlist(predicted.values), ncol=length(predicted.values), byrow=F))
+    predicted.values <- data.frame(lapply(predicted.values, function(x) unlist(x)))
     colnames(predicted.values) = names(models)
+    predicted.values[,id] = row.names(pred.mat)
   }
   #if(is.vector(models)) predicted.values = estimate.pred(pred.mat, coef = models, id = id)
   
@@ -104,7 +105,8 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   if(length(VOI) > 1) resid = sapply(seq_along(VOI), FUN = function(x) data[,VOI[x]] - predicted.values[,VOI[x]] + means[VOI[x]])
   if(length(VOI) == 1) resid = data[,VOI] - predicted.values + means
   # replace the existing variables with the residualized ones
-  newdata[,VOI] = resid
+  newdata = newdata[,!(names(newdata) %in% VOI)]
+  newdata = full_join(newdata, predicted.values, by = id)
   # return the new data frame
   return(newdata)
 }

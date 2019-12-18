@@ -102,11 +102,17 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   
   # for each VOI, take that vector in the original data and subtract the predicted value; 
   # then add the mean of that variable back in
-  if(length(VOI) > 1) resid = sapply(seq_along(VOI), FUN = function(x) data[,VOI[x]] - predicted.values[,VOI[x]] + means[VOI[x]])
-  if(length(VOI) == 1) resid = data[,VOI] - predicted.values + means
+  if(length(VOI) > 1){
+    resid = predicted.values
+    resid[,VOI] = sapply(seq_along(VOI), FUN = function(x) data[,VOI[x]] - predicted.values[,VOI[x]] + means[VOI[x]])
+    }
+  if(length(VOI) == 1){
+    resid = predicted.values
+    resid[,VOI] = data[,VOI] - predicted.values + means
+    }
   # replace the existing variables with the residualized ones
   newdata = newdata[,!(names(newdata) %in% VOI)]
-  newdata = full_join(newdata, predicted.values, by = id)
+  newdata = full_join(newdata, resid, by = id)
   # return the new data frame
   return(newdata)
 }

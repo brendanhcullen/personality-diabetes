@@ -76,6 +76,9 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
     unite(variable, variable, value, sep = "") %>%
     mutate(value = 1) %>%
     spread(variable, value, fill = 0)}
+  if (length(factor_var) <= 1){
+    predictors = as.data.frame(predictors[,id])
+  }
   if(ncol(numeric) > 0) predictors = cbind(predictors, numeric)
   
   predictors = predictors[order(predictors[,id]), ]

@@ -29,6 +29,8 @@ number_of_cores = 4
 cluster = makePSOCKcluster(number_of_cores)
 registerDoParallel(cluster)
 
+train_control$search = "grid"
+
  # train the model 
 model = train(diagnosis ~ .,
               data = train_data,

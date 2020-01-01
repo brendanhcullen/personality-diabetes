@@ -77,7 +77,8 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
     mutate(value = 1) %>%
     spread(variable, value, fill = 0)}
   if (length(factor_var) <= 1){
-    predictors = as.data.frame(predictors[,id])
+    predictors = data.frame(id = predictors[,id])
+    names(predictors)[1] = id
   }
   if(ncol(numeric) > 0) predictors = cbind(predictors, numeric)
   
@@ -90,7 +91,13 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   row.names(pred.mat) = predictors$RID
   
   #use matrix algebra to apply each linear transformation (coef vector) to columns
-  if(is.matrix(models)) predicted.values = apply(models, 2, FUN = function(x) estimate.pred(pred.mat, coef = x, id = id))
+  if(is.matrix(models)){
+    predicted.values = apply(models, 2, FUN = function(x) estimate.pred(pred.mat, coef = x, id = id))
+    predicted.values = cbind(as.numeric(as.character(row.names(pred.mat))), predicted.values)
+    predicted.values = as.data.frame(predicted.values)
+    names(predicted.values)[1] = id
+    predicted.values[,id] = as.factor(predicted.values[,id])
+  }
   if(is.list(models)){ 
     predicted.values = lapply(models, FUN = function(x) estimate.pred(pred.mat, coef = x, id = id))
     #make that a data.frame
@@ -112,6 +119,7 @@ residualize = function(VOI = NULL, VTC = NULL, id = NULL, data = NULL){
   if(length(VOI) == 1){
     resid = predicted.values
     resid[,VOI] = data[,VOI] - predicted.values + means
+    resid = as.data.frame(resid)
     }
   # replace the existing variables with the residualized ones
   newdata = newdata[,!(names(newdata) %in% VOI)]

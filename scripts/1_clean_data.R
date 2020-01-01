@@ -85,6 +85,15 @@ data = cbind(select(data, -starts_with("q_")),
              spi_27_scores,
              select(data, starts_with("q_")))
 
+# Impute missing data -----------------------------------------------------
+
+# temporary, to reduce run time
+data = data %>%
+  sample_n(1000)
+
+# impute missing SPI data
+data = impute_missing(data = data, vars_to_impute = all_spi_names)
+
 # Residualize -------------------------------------------------------------
 
 demographic_vars = c(
@@ -99,17 +108,12 @@ demographic_vars = c(
 data = data %>% 
   mutate_at(c("ethnic", "jobstatus", "education", "p1edu", "p2edu"), as.factor)
 
+VOI = all_spi_names
+VTC = "age"
+id = "RID"
+
 # extract residuals 
 data = residualize(VOI = all_spi_names, VTC = demographic_vars, data = data, id = "RID")
-
-# Impute missing data -----------------------------------------------------
-
-# temporary, to reduce run time
-data = data %>% 
-  sample_n(1000)
-
-# impute missing SPI data
-data = impute_missing(data = data, vars_to_impute = all_spi_names)
 
 # Save cleaned data -------------------------------------------------------
 

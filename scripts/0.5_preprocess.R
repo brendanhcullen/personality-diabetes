@@ -5,7 +5,7 @@ source(here("scripts/0.2_residualize.R"))
 source(here("scripts/0.3_score_spi.R"))
 source(here("scripts/0.4_impute.R"))
 
-preprocess = function(data, keys = keys, id ="RID", VOI = all_spi_names, covariates, path = here("data/IRTinfoSPI27.rdata"), order){
+preprocess_sapa = function(data, keys = keys, id ="RID", VOI = all_spi_names, covariates, path = here("data/IRTinfoSPI27.rdata"), order){
 
   VOI_items = all_spi_names[grepl("q_", all_spi_names)]
   resid_place = which(order == "residualize")

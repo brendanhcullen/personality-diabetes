@@ -101,3 +101,24 @@ score_spi_27 = function(data, keys, path_to_IRT_calibrations){
   
  return(SPIirtScores)
 }
+
+
+score = function(data, keys, path){
+  spi_5_scores = score_spi_5(data = data, keys = keys)
+  
+  # add SPI-5 scores to data
+  data = cbind(select(data, -starts_with("q_")),
+               spi_5_scores, 
+               select(data, starts_with("q_")))
+  
+  # Score SPI-27 (using IRT) 
+  spi_27_scores = score_spi_27(data = data, 
+                               keys = keys, 
+                               path_to_IRT_calibrations = path)
+  
+  # add IRT scores to data
+  data = cbind(select(data, -starts_with("q_")),
+               spi_27_scores,
+               select(data, starts_with("q_")))
+  return(data)
+}

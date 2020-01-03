@@ -60,10 +60,10 @@ score_spi_5 = function(data, keys){
 ######## ALL IRT CODE WAS COPIED FROM SARA'S SAPA BMI PROJECT ######## 
 # more info here: https://github.com/sjweston/SAPA_BMI/tree/master/irt_troubleshoot
 
-score_spi_27 = function(data, keys, path_to_IRT_calibrations){
+score_spi_27 = function(data, keys, IRT_path){
 
   # load IRT calibrations
-  load(path_to_IRT_calibrations)
+  load(IRT_path)
   
   # IRT score
   dataSet <- subset(data, select = c(orderForItems))
@@ -103,7 +103,7 @@ score_spi_27 = function(data, keys, path_to_IRT_calibrations){
 }
 
 
-score = function(data, keys, path){
+score = function(data, keys, IRT_path){
   spi_5_scores = score_spi_5(data = data, keys = keys)
   
   # add SPI-5 scores to data
@@ -114,7 +114,7 @@ score = function(data, keys, path){
   # Score SPI-27 (using IRT) 
   spi_27_scores = score_spi_27(data = data, 
                                keys = keys, 
-                               path_to_IRT_calibrations = path)
+                               IRT_path = IRT_path)
   
   # add IRT scores to data
   data = cbind(select(data, -starts_with("q_")),

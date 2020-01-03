@@ -81,62 +81,6 @@ newdata2 = preprocess_sapa(data = data,
                           IRT_path = here("data/IRTinfoSPI27.rdata"), 
                           order = c("score", "impute", "residualize"))
 
-
-
-
-
-# Score SPI-5 (i.e. Big 5) ------------------------------------------------
-
-spi_5_scores = score_spi_5(data = data, keys = keys)
-
-# add SPI-5 scores to data
-data = cbind(select(data, -starts_with("q_")),
-        spi_5_scores, 
-        select(data, starts_with("q_")))
-
-
-# Score SPI-27 (using IRT) ------------------------------------------------
-
-path_to_IRT_calibrations = here("data/IRTinfoSPI27.rdata") # specify where IRT calibrations file is saved
-spi_27_scores = score_spi_27(data = data, 
-                             keys = keys, 
-                             path_to_IRT_calibrations = path_to_IRT_calibrations)
-
-# add IRT scores to data
-data = cbind(select(data, -starts_with("q_")),
-             spi_27_scores,
-             select(data, starts_with("q_")))
-
-# Impute missing data -----------------------------------------------------
-
-# temporary, to reduce run time
-data = data %>%
-  sample_n(1000)
-
-# impute missing SPI data
-data = impute_missing(data = data, vars_to_impute = all_spi_names)
-
-# Residualize -------------------------------------------------------------
-
-demographic_vars = c(
-              "age", # age
-              "ethnic",  # ethnicity
-              "jobstatus", # current job status
-              "education", "occPrestige", "occIncomeEst", # self SES
-              "p1edu", "p1occPrestige", "p1occIncomeEst", # parent 1 SES
-              "p2edu", "p2occPrestige", "p2occIncomeEst") # parent 2 SES
-
-# convert relevant variables to factors
-data = data %>% 
-  mutate_at(c("ethnic", "jobstatus", "education", "p1edu", "p2edu"), as.factor)
-
-VOI = all_spi_names
-VTC = "age"
-id = "RID"
-
-# extract residuals 
-data = residualize(VOI = all_spi_names, VTC = demographic_vars, data = data, id = "RID")
-
 # Save cleaned data -------------------------------------------------------
 
 save(data, file = here("output/data_cleaned.Rdata"))

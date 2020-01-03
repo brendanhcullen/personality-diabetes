@@ -61,23 +61,3 @@ preprocess_sapa = function(data, keys = keys, id ="RID", VOI = all_spi_names, co
   
   return(data)
 }
-
-# test the function
-
-demographic_vars = c(
-  "age", # age
-  "ethnic",  # ethnicity
-  "jobstatus", # current job status
-  "education", "occPrestige", "occIncomeEst", # self SES
-  "p1edu", "p1occPrestige", "p1occIncomeEst", # parent 1 SES
-  "p2edu", "p2occPrestige", "p2occIncomeEst") # parent 2 SES
-
-# newdata = preprocess_sapa(data = data, 
-#                           keys = keys, 
-#                           id = "RID", 
-#                           VOI = all_spi_names, 
-#                           covariates = demographic_vars, 
-#                           IRT_path = here("data/IRTinfoSPI27.rdata"), 
-#                           order = c("score", "impute", "residualize"))
-
-

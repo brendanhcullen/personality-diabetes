@@ -1,9 +1,10 @@
 
 library(here)
 
-source(here("scripts/0.2_residualize.R"))
-source(here("scripts/0.3_score_spi.R"))
-source(here("scripts/0.4_impute.R"))
+source(here("scripts/preprocessing/get_spi_names.R"))
+source(here("scripts/preprocessing/score_spi.R"))
+source(here("scripts/preprocessing/impute.R"))
+source(here("scripts/preprocessing/residualize.R"))
 
 preprocess_sapa = function(data, keys = keys, id ="RID", VOI = all_spi_names, covariates, IRT_path = here("data/IRTinfoSPI27.rdata"), order){
 
@@ -71,6 +72,12 @@ demographic_vars = c(
   "p1edu", "p1occPrestige", "p1occIncomeEst", # parent 1 SES
   "p2edu", "p2occPrestige", "p2occIncomeEst") # parent 2 SES
 
-newdata = preprocess_sapa(data = data, keys = keys, id = "RID", VOI = all_spi_names, covariates = demographic_vars, IRT_path = here("data/IRTinfoSPI27.rdata"), order = c("score", "impute", "residualize"))
+# newdata = preprocess_sapa(data = data, 
+#                           keys = keys, 
+#                           id = "RID", 
+#                           VOI = all_spi_names, 
+#                           covariates = demographic_vars, 
+#                           IRT_path = here("data/IRTinfoSPI27.rdata"), 
+#                           order = c("score", "impute", "residualize"))
 
 

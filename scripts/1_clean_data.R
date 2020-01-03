@@ -13,9 +13,7 @@ library(missMDA)
 
 # Source pre-processing functions and import SPI keys ---------------------
 
-source(here("scripts/0.3_score_spi.R"))
-source(here("scripts/0.2_residualize.R"))
-source(here("scripts/0.4_impute.R"))
+source(here("scripts/preprocessing/get_spi_names.R"))
 
 # read in keys for SPI scoring
 keys = read.csv(here("data/superKey.csv"), header = TRUE, row.names = 1)
@@ -62,6 +60,30 @@ data = data %>%
 data = data %>% 
   select(spi_135_names) %>% 
   cbind(select(data, -starts_with("q_")), .)
+
+
+# Preprocess data ---------------------------------------------------------
+
+demographic_vars = c(
+  "age", # age
+  "ethnic",  # ethnicity
+  "jobstatus", # current job status
+  "education", "occPrestige", "occIncomeEst", # self SES
+  "p1edu", "p1occPrestige", "p1occIncomeEst", # parent 1 SES
+  "p2edu", "p2occPrestige", "p2occIncomeEst") # parent 2 SES
+
+
+newdata2 = preprocess_sapa(data = data, 
+                          keys = keys, 
+                          id = "RID", 
+                          VOI = all_spi_names, 
+                          covariates = demographic_vars, 
+                          IRT_path = here("data/IRTinfoSPI27.rdata"), 
+                          order = c("score", "impute", "residualize"))
+
+
+
+
 
 # Score SPI-5 (i.e. Big 5) ------------------------------------------------
 

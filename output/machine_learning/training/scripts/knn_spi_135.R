@@ -29,10 +29,11 @@ number_of_cores = 4
 cluster = makePSOCKcluster(number_of_cores)
 registerDoParallel(cluster)
 
-train_control$search = "grid"
-
- # train the model 
-model = train(diagnosis ~ .,
+ # set seed for reproducibility
+set.seed(010320)
+  
+# train the model 
+model = train(diabetes ~ .,
               data = train_data,
               method = deparse(substitute(knn)), 
               trControl = train_control,

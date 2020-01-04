@@ -103,7 +103,7 @@ test_data_pp = preprocess_sapa(data = test_data,
                                order = c("score", "impute", "residualize"))
 
 # Save cleaned data -------------------------------------------------------
-
+saveRDS(spi_names, file = here("output/spi_names.RDS"))
 saveRDS(data, file = here("output/data_filtered.RDS"))
 saveRDS(train_data_pp, file = here("output/train_data_pp.RDS"))
 saveRDS(test_data_pp, file = here("output/test_data_pp.RDS"))

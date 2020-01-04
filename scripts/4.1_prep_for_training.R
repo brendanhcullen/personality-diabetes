@@ -5,70 +5,21 @@
 library(here)
 library(tidyverse)
 library(caret)
-library(janitor)
 
-# Load data ---------------------------------------------------------------
+# Load training data ------------------------------------------------------
 
-load(here("output/data_cleaned.Rdata"))
+spi_names = readRDS(here("output/spi_names.RDS"))
+train_data_pp = readRDS(here("/output/train_data_pp.RDS"))
 
-# Wrangle data and partition -----------------------------------------------
-
-# get SPI names
-keys = read.table(url("https://dataverse.harvard.edu/api/access/datafile/:persistentId?persistentId=doi:10.7910/DVN/TZJGAT/YGMHBT"), 
-                  header = TRUE, 
-                  row.names = 1)
-
-keys = keys[names(data_scored), ] %>% 
-  clean_names() %>% 
-  select(contains("spi_135")) %>% 
-  names()
-
-spi_names = gsub("spi_135_27_5_", "", keys)
-spi_5_names = spi_names[1:5]
-spi_27_names = spi_names[6:32]
-rm(keys, spi_names)
+# Split training data into 3 subsets --------------------------------------
 
 # convert diabetes to a factor
-data_scored = data_scored %>% 
+train_data_pp = train_data_pp %>% 
   mutate(diabetes = as.factor(diabetes))
 
-# create 3 spi datasets for training
-datasets = list(data_spi_5 = data_scored %>% 
-  select(diabetes, spi_5_names),
-  data_spi_27 = data_scored %>% 
-  select(diabetes, spi_27_names),
-  data_spi_135 = data_scored %>% 
-    select(diabetes, starts_with("q_")))
-
-# function to split datasets into training and testing
-
-partition_spi_data = function(dataset) {
-  partition = createDataPartition(dataset$diabetes,
-                      times = 1,
-                      p = .8,
-                      list = FALSE)
-  
-  train_data = dataset[partition, ] # training data 
-  test_data = dataset[-partition, ] # holdout test data
-  
-  partitioned_data = list(train = train_data, test = test_data)
-
-  return(partitioned_data)
-}
- 
-# partition the 3 datasets
-train_test_splits = map(datasets, partition_spi_data)
-
-
-# Impute missing data -----------------------------------------------------
-
-# manually randomly impute for now. Note: imputation will eventually occur as a "pre-processing" step
-train_test_splits$data_spi_135$train = train_test_splits$data_spi_135$train %>% 
-  mutate_all(Hmisc::impute, fun = "random")
-
-train_test_splits$data_spi_135$test = train_test_splits$data_spi_135$test %>%
-  mutate_all(Hmisc::impute, fun = "random") 
-
+train_data_split = list(train_spi_5 = train_data_pp %>% select(diabetes, spi_names$spi_5), 
+                        train_spi_27 = train_data_pp %>% select(diabetes, spi_names$spi_27),
+                        train_spi_135 = train_data_pp %>% select(diabetes, spi_names$spi_135))
 
 # Specify resampling parameters -------------------------------------------
 
@@ -113,21 +64,13 @@ train_master_df = data.frame(ml_model = I(model_list), # use I() to use lists "a
                        tuning_grid = I(tuning_list),
                        add_args = I(add_args_list)) 
 
-train_master_df = train_master_df[rep(1:nrow(train_master_df), times = length(train_test_splits)),]
+train_master_df = train_master_df[rep(1:nrow(train_master_df), times = length(train_data_split)),]
 
 spi_dataset_names = c("spi_5", "spi_27", "spi_135")
 
 train_master_df = train_master_df %>% 
   mutate(spi_scoring = rep(spi_dataset_names, each = nrow(.)/length(spi_dataset_names))) %>% 
-  mutate(train_data = rep(map(train_test_splits, "train"), each = nrow(.)/length(spi_dataset_names)))
-
-# Save test data ----------------------------------------------------------
-
-# save test data for later model evaluation
-saveRDS(train_test_splits$data_spi_5$test, file = here("output/machine_learning/test_data/test_data_spi_5.RDS"))
-saveRDS(train_test_splits$data_spi_27$test, file = here("output/machine_learning/test_data/test_data_spi_27.RDS"))
-saveRDS(train_test_splits$data_spi_135$test, file = here("output/machine_learning/test_data/test_data_spi_135.RDS"))
-
+  mutate(train_data = rep(train_data_split, each = nrow(.)/length(spi_dataset_names)))
 
 # Save training info ------------------------------------------------------
 

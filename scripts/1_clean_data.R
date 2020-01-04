@@ -9,11 +9,11 @@ library(tidyverse)
 library(psych)
 library(janitor)
 library(missMDA)
-
+library(caret)
 
 # Source pre-processing functions and import SPI keys ---------------------
 
-source(here("scripts/preprocessing/get_spi_names.R"))
+source(here("scripts/preprocessing/preprocess.R"))
 
 # read in keys for SPI scoring
 keys = read.csv(here("data/superKey.csv"), header = TRUE, row.names = 1)
@@ -62,8 +62,20 @@ data = data %>%
   cbind(select(data, -starts_with("q_")), .)
 
 
+# Partition data into training and testing --------------------------------
+
+partition = createDataPartition(data$diabetes,
+                                times = 1,
+                                p = .75,
+                                list = FALSE)
+
+train_data = data[partition, ] # training data 
+test_data = data[-partition, ] # holdout test data
+
+
 # Preprocess data ---------------------------------------------------------
 
+# specify demographic variables to use as covariates when residualizing
 demographic_vars = c(
   "age", # age
   "ethnic",  # ethnicity
@@ -72,15 +84,26 @@ demographic_vars = c(
   "p1edu", "p1occPrestige", "p1occIncomeEst", # parent 1 SES
   "p2edu", "p2occPrestige", "p2occIncomeEst") # parent 2 SES
 
+# pre-process train data
+train_data_pp = preprocess_sapa(data = train_data, 
+                                keys = keys, 
+                                id = "RID", 
+                                VOI = all_spi_names, 
+                                covariates = demographic_vars, 
+                                IRT_path = here("data/IRTinfoSPI27.rdata"), 
+                                order = c("score", "impute", "residualize"))
 
-newdata2 = preprocess_sapa(data = data, 
-                          keys = keys, 
-                          id = "RID", 
-                          VOI = all_spi_names, 
-                          covariates = demographic_vars, 
-                          IRT_path = here("data/IRTinfoSPI27.rdata"), 
-                          order = c("score", "impute", "residualize"))
+# pre-process test data
+test_data_pp = preprocess_sapa(data = test_data, 
+                               keys = keys, 
+                               id = "RID", 
+                               VOI = all_spi_names, 
+                               covariates = demographic_vars, 
+                               IRT_path = here("data/IRTinfoSPI27.rdata"), 
+                               order = c("score", "impute", "residualize"))
 
 # Save cleaned data -------------------------------------------------------
 
-save(data, file = here("output/data_cleaned.Rdata"))
+saveRDS(data, file = here("output/data_filtered.RDS"))
+saveRDS(train_data_pp, file = here("output/train_data_pp.RDS"))
+saveRDS(test_data_pp, file = here("output/test_data_pp.RDS"))

@@ -11,6 +11,9 @@ train_control = readRDS(here("/output/machine_learning/training/train_control.RD
 insert_add_args = function(add_args) {
   # this is the default code when no additional arguments are necessary
   text = "
+# set seed for reproducibility
+set.seed(010320)
+  
 # train the model 
 model = train(diabetes ~ .,
               data = train_data,

@@ -11,8 +11,6 @@ library(janitor)
 
 load(here("output/data_cleaned.Rdata"))
 
-set.seed(081919)
-
 # Wrangle data and partition -----------------------------------------------
 
 # get SPI names

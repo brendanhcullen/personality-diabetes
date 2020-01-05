@@ -7,17 +7,26 @@ library(tidyverse)
 library(broom)
 library(effsize)
 library(rsample)
+library(janitor)
+library(psych)
 
-# load cleaned data
-load(here("output/data_cleaned.Rdata"))
+# load data that has been filtered based on exclusion criteria
+data_filtered = readRDS(here("output/data_filtered.RDS"))
+
+# Score SPI data ----------------------------------------------------------
+
+source(here("scripts/preprocessing/score_spi.R"))
+spi_names = readRDS(here("output/spi_names.RDS"))
+IRT_path = here("data/IRTinfoSPI27.rdata")
+keys = read.csv(here("data/superKey.csv"), header = TRUE, row.names = 1)
+
+data_scored = score(data = data_filtered, keys = keys, IRT_path = IRT_path)
 
 # Wrangle data for iteration ------------------------------------------------
 
 # convert to long format and nest
 data_nested = data_scored %>% 
-  mutate(diabetes = as.character(diabetes)) %>% 
-  select(-contains("q_")) %>% # remove raw SPI items
-  select(-("rid":"p2occ_income_est")) %>% # remove demographic vars
+  select(diabetes, spi_names$spi_5, spi_names$spi_27) %>% # remove demographic vars and raw items
   gather(-diabetes, key = trait, value = score) %>% # convert to long format
   group_by(trait) %>% 
   nest()
@@ -49,7 +58,7 @@ t_test_output = data_nested %>%
 # Bootstrap Cohen's D ----------------------------------------------------
 
 # number of bootstraps
-boot.n = 10
+boot.n = 100
 #boot.n = 1000
 
 #helper function
@@ -59,7 +68,7 @@ d_boot = function(split){
 
 # iterate cohen's d confidence intervals
 d_confidence = data_nested %>%
-  mutate(boots = map(data, bootstraps, times = boot.n)) %>%
+  mutate(boots = map(data, rsample::bootstraps, times = boot.n)) %>%
   mutate(boots = map(boots, .f =  function(x) mutate(x, d = map(splits, d_boot)))) %>% #maps in maps!
   mutate(boots = map(boots, .f = function(x) mutate(x, d = map_dbl(d, "estimate")))) %>%
   mutate(boots = map(boots, "d")) %>%
@@ -74,4 +83,4 @@ t_test_output = full_join(t_test_output, d_confidence)
 
 # Save t-test output ------------------------------------------------------
 
-save(t_test_output, file = here("output/t_test_output.Rdata"))
+saveRDS(t_test_output, file = here("output/t_test_output.RDS"))

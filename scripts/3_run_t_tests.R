@@ -11,7 +11,7 @@ library(janitor)
 library(psych)
 
 # load data that has been filtered based on exclusion criteria
-data_filtered = readRDS(here("output/data_filtered.RDS"))
+data_filtered = readRDS(here("output/t_tests/data_filtered.RDS"))
 
 # Score SPI data ----------------------------------------------------------
 

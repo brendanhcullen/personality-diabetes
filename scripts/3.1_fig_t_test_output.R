@@ -6,7 +6,8 @@ library(tidyverse)
 
 # Load output from t-tests ------------------------------------------------
 
-readRDS(here("output/t_tests/t_test_output.RDS"))
+t_test_output = readRDS(here("output/t_tests/t_test_output.RDS"))
+spi_names = readRDS(here("output/spi_names.RDS"))
 
 # Build plot --------------------------------------------------------------
 
@@ -18,40 +19,9 @@ t_test_output = t_test_output %>%
   mutate(trait = factor(trait) %>% 
            fct_reorder(cohens_d))
 
-spi5 = c("open", "consc", "extra", "agree", "neuro")
-spi27 = c(
-  "compassion",
-  "trust",
-  "honesty",
-  "conservatism",
-  "authoritarianism",
-  "easy_goingness",
-  "perfectionism",
-  "order",
-  "industry",
-  "impulsivity",
-  "self_control",
-  "emotional_stability",
-  "anxiety",
-  "irritability",
-  "well_being",
-  "emotional_expressiveness",
-  "sociability",
-  "adaptability",
-  "charisma",
-  "humor",
-  "attention_seeking",
-  "sensation_seeking",
-  "conformity",
-  "introspection",
-  "art_appreciation",
-  "creativity",
-  "intellect"
-)
-
 # plot results for big 5 traits
 t_test_output %>% 
-  filter(trait %in% spi5) %>% 
+  filter(trait %in% spi_names$spi_5) %>% 
   ggplot(aes(trait, cohens_d)) +
   geom_errorbar(aes(ymin = d_conf_low,
                     ymax = d_conf_high,
@@ -81,8 +51,8 @@ plot_d = function(spi_traits) {
   return(plot)
 }
 
-spi5_plot = plot_d(spi5)
-spi27_plot = plot_d(spi27)
+spi5_plot = plot_d(spi_names$spi_5)
+spi27_plot = plot_d(spi_names$spi_27)
 
 # Save plot ---------------------------------------------------------------
 

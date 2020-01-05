@@ -9,7 +9,7 @@ library(caret)
 # Load training data ------------------------------------------------------
 
 spi_names = readRDS(here("output/spi_names.RDS"))
-train_data_pp = readRDS(here("/output/train_data_pp.RDS"))
+train_data_pp = readRDS(here("/output/machine_learning/training/train_data_pp.RDS"))
 
 # Split training data into 3 subsets --------------------------------------
 

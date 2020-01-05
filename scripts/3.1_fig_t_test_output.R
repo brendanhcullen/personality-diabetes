@@ -6,7 +6,7 @@ library(tidyverse)
 
 # Load output from t-tests ------------------------------------------------
 
-load(here("output/t_test_output.Rdata"))
+readRDS(here("output/t_tests/t_test_output.RDS"))
 
 # Build plot --------------------------------------------------------------
 

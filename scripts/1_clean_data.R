@@ -104,6 +104,6 @@ test_data_pp = preprocess_sapa(data = test_data,
 
 # Save cleaned data -------------------------------------------------------
 saveRDS(spi_names, file = here("output/spi_names.RDS"))
-saveRDS(data, file = here("output/data_filtered.RDS"))
-saveRDS(train_data_pp, file = here("output/train_data_pp.RDS"))
-saveRDS(test_data_pp, file = here("output/test_data_pp.RDS"))
+saveRDS(data, file = here("output/t_tests/data_filtered.RDS"))
+saveRDS(train_data_pp, file = here("output/machine_learning/training/train_data_pp.RDS"))
+saveRDS(test_data_pp, file = here("output/machine_learning/testing/test_data_pp.RDS"))

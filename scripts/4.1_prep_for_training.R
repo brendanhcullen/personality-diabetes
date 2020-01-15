@@ -61,7 +61,6 @@ add_args_list = map(model_list, ~get(paste0(.x, "_args")))
 
 # create master df
 train_master_df = data.frame(ml_model = I(model_list), # use I() to use lists "as is"
-                       tuning_grid = I(tuning_list),
                        add_args = I(add_args_list)) 
 
 train_master_df = train_master_df[rep(1:nrow(train_master_df), times = length(train_data_split)),]

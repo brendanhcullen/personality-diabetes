@@ -37,3 +37,6 @@ rsconnect/
 
 # IRT calibrations from Sara
 IRTinfoSPI27.rdata
+
+# train_master_df (too large to push to Github)
+train_master_df.RDS

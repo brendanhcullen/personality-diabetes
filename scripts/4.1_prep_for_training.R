@@ -30,13 +30,14 @@ train_control = trainControl(method = "repeatedcv",
                              sampling = "smote") # use for resolving class imbalances
 
 # Specify tuning grids ----------------------------------------------------
+# Keeping this code for reference, but we are going to use default tuning grids instead. 
 
-multinom_grid = expand.grid(decay = seq(from = 0, to = 0.5, by = .1))
-
-knn_grid = expand.grid(k = seq(from = 1, to = 5, by = 1))
-
-nnet_grid = expand.grid(size = seq(from = 1, to = 10, by = 1),
-                        decay = seq(from = 0.1, to = 0.5, by = 0.1))
+# multinom_grid = expand.grid(decay = seq(from = 0, to = 0.5, by = .1))
+# 
+# knn_grid = expand.grid(k = seq(from = 1, to = 5, by = 1))
+# 
+# nnet_grid = expand.grid(size = seq(from = 1, to = 10, by = 1),
+#                         decay = seq(from = 0.1, to = 0.5, by = 0.1))
 
 
 # Specify additional arguments --------------------------------------------
@@ -46,15 +47,27 @@ multinom_args = NULL
 knn_args = NULL
 
 nnet_args = list(MaxNWts = as.character(2000),
-                 maxit = as.character(200))
+                 maxit = as.character(2000))
+
+svmRadial_args = NULL
+
+lda_args = NULL
+
+rf_args = NULL
+
+rpart2_args = NULL
 
 # Create master df --------------------------------------------------------
 
 # list of ML algorithms to run
-model_list = list("multinom", "knn", "nnet") 
-
-# list of corresponding tuning grids
-tuning_list = map(model_list, ~get(paste0(.x, "_grid")))
+model_list = list("multinom", # penalized multinomial logistic regression
+                  "knn", # k-nearest neighbors
+                  "nnet", # neural network
+                  "svmRadial", # support vector machine with radial basis function kernel
+                  "lda", # linear discriminant analysis
+                  "rf", # random forest
+                  "rpart2" # decision tree classifier
+                  ) 
 
 # list of additonal arguments (these will be unique to each ML algorithm)
 add_args_list = map(model_list, ~get(paste0(.x, "_args")))

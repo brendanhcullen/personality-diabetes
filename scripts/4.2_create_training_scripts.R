@@ -57,9 +57,6 @@ else if(ml_model == "rf") {
 else if (ml_model == "svmRadial") {
   script_chunk_2 = "library(kernlab)"
 }
-else if (ml_model == "lda") {
-  script_chunk_2 = "library(MASS)"
-}
 else if (ml_model == "rpart2") {
   script_chunk_2 = "library(rpart)"
 }

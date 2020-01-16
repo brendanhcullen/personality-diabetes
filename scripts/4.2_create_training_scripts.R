@@ -43,6 +43,28 @@ library(caret)
 library(doParallel)
 library(DMwR) # for smote sub-sampling
 library(e1071) # seems to be required for all ML algorithms
+"
+
+# Load additional libraries for each ML algorithm as needed
+script_chunk_2 = "" 
+
+if(ml_model == "multinom") {
+  script_chunk_2 = "library(nnet)"
+}
+else if(ml_model == "rf") {
+  script_chunk_2 = "library(randomForest)"
+}
+else if (ml_model == "svmRadial") {
+  script_chunk_2 = "library(kernlab)"
+}
+else if (ml_model == "lda") {
+  script_chunk_2 = "library(MASS)"
+}
+else if (ml_model == "rpart2") {
+  script_chunk_2 = "library(rpart)"
+}
+
+script_chunk_3 = "
 
 # load in relevant info for model training
 train_master_df = readRDS(here('/output/machine_learning/training/train_master_df.RDS'))
@@ -61,9 +83,9 @@ registerDoParallel(cluster)
 
 "
 
-  script_chunk_2 = insert_add_args(add_args)
+  script_chunk_4 = insert_add_args(add_args)
 
-  script_chunk_3 = "
+  script_chunk_5 = "
   
 # specify where to save model output
 filename = 'ml_model_name_spi_scoring_name_fit.RDS'
@@ -76,7 +98,7 @@ saveRDS(model, file = paste0(output_dir, filename))
 stopCluster(cluster)
 "
   # combine 3 parts of scripts into one full script
-  full_script = paste(script_chunk_1, script_chunk_2, script_chunk_3)
+  full_script = paste(script_chunk_1, script_chunk_2, script_chunk_3, script_chunk_4, script_chunk_5)
   
   # substitute relevant strings
   new_script = gsub("ml_model_name", ml_model, full_script) %>% 

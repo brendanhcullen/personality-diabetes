@@ -19,7 +19,6 @@ model = train(diabetes ~ .,
               data = train_data,
               method = deparse(substitute(ml_model_name)), 
               trControl = train_control,
-              tuneGrid = tuning_grid,
               metric = 'Kappa'"
   
   for (i in seq_along(add_args)) { 
@@ -34,7 +33,7 @@ model = train(diabetes ~ .,
   }
 
 # function to create individual model training scripts for each ML algorithm
-create_script = function(ml_model, tuning_grid, add_args, spi_scoring, train_data) {
+create_script = function(ml_model, add_args, spi_scoring, train_data) {
   script_chunk_1 = "# This script applies the machine learning algorithm 'ml_model_name' using the 'spi_scoring_name' dataset as input features
 
 # load libraries
@@ -53,12 +52,6 @@ train_control = readRDS(here('/output/machine_learning/training/train_control.RD
 train_data = train_master_df %>% 
   filter(ml_model == deparse(substitute(ml_model_name)) & spi_scoring == deparse(substitute(spi_scoring_name))) %>% 
   select(train_data) %>% 
-  map_df(1)
-
-# select tuning grid  
-tuning_grid = train_master_df %>% 
-  filter(ml_model == deparse(substitute(ml_model_name)) & spi_scoring == deparse(substitute(spi_scoring_name))) %>% 
-  select(tuning_grid) %>% 
   map_df(1)
 
 # Set up parallelization

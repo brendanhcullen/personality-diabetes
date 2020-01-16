@@ -18,12 +18,6 @@ train_data = train_master_df %>%
   select(train_data) %>% 
   map_df(1)
 
-# select tuning grid  
-tuning_grid = train_master_df %>% 
-  filter(ml_model == deparse(substitute(knn)) & spi_scoring == deparse(substitute(spi_135))) %>% 
-  select(tuning_grid) %>% 
-  map_df(1)
-
 # Set up parallelization
 number_of_cores = 4
 cluster = makePSOCKcluster(number_of_cores)
@@ -37,7 +31,6 @@ model = train(diabetes ~ .,
               data = train_data,
               method = deparse(substitute(knn)), 
               trControl = train_control,
-              tuneGrid = tuning_grid,
               metric = 'Kappa') 
   
 # specify where to save model output

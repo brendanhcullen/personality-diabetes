@@ -40,3 +40,6 @@ IRTinfoSPI27.rdata
 
 # train_master_df (too large to push to Github)
 output/machine_learning/training/train_master_df.RDS
+
+# individual machine learning scripts
+output/machine_learning/training/scripts/*

@@ -39,4 +39,4 @@ rsconnect/
 IRTinfoSPI27.rdata
 
 # output folder
-output/
+output/*

@@ -24,7 +24,7 @@ impute_missing = function(data = NULL, vars_to_impute = NULL){
                               ncp = num_components,
                               method = "Regularized", # default
                               coeff.ridge = 1, # default (see documentation)
-                              maxiter = 1000 # default; INCREASE THIS???
+                              maxiter = 10000 # default; INCREASE THIS???
     )
     
     imputed_data = as.data.frame(single_impute$completeObs)

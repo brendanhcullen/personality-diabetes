@@ -20,21 +20,29 @@ keys = read.csv(here("data/superKey.csv"), header = TRUE, row.names = 1)
 
 # Import data -------------------------------------------------------------
 
-######################### IMPORT ACTUAL DATASET HERE ######################### 
+# load raw data
+load(here("../SAPAdata07feb2017thru18nov2019.rdata"))
+
+# rename to 'data'
+data = SAPAdata07feb2017thru18nov2019
+
+# convert RID to factor so that later joins will work 
+data = data %>% 
+  mutate(RID = as.factor(RID))
 
 # Import toy data ---------------------------------------------------------
 
 ######################### REMOVE THIS FOR REAL ANALYSIS ######################### 
 
 # load in toy dataset
-load(here("data/toydata.Rdata"))
+#load(here("data/toydata.Rdata"))
 
 # add RID variable to be consistent with real SAPA data
-data = toydata %>% 
-  rownames_to_column() %>% 
-  rename(RID = rowname)
-
-rm(toydata)
+# data = toydata %>% 
+#   rownames_to_column() %>% 
+#   rename(RID = rowname)
+# 
+# rm(toydata)
 
 # Filter data -------------------------------------------------------------
 
@@ -46,8 +54,8 @@ spi_135_names = spi_names$spi_135
 all_spi_names = unlist(spi_names, use.names = FALSE)
 
 # min number of responses to SPI-135 items required to be included in analysis
-#min_n_valid = 27
-min_n_valid = 10 # just for toy data
+min_n_valid = 27
+#min_n_valid = 10 # just for toy data
 
 data = data %>% 
   mutate(n_valid_135 = apply(.[,spi_135_names], 1, function(x) sum(!is.na(x)))) %>%  
@@ -63,7 +71,7 @@ data = data %>%
 
 
 # Partition data into training and testing --------------------------------
-
+set.seed(02102020)
 partition = createDataPartition(data$diabetes,
                                 times = 1,
                                 p = .75,
@@ -90,7 +98,7 @@ train_data_pp = preprocess_sapa(data = train_data,
                                 id = "RID", 
                                 VOI = all_spi_names, 
                                 covariates = demographic_vars, 
-                                IRT_path = here("data/IRTinfoSPI27.rdata"), 
+                                IRT_path = here("../IRTinfoSPI27.rdata"), 
                                 order = c("score", "impute", "residualize"))
 
 # pre-process test data
@@ -99,7 +107,7 @@ test_data_pp = preprocess_sapa(data = test_data,
                                id = "RID", 
                                VOI = all_spi_names, 
                                covariates = demographic_vars, 
-                               IRT_path = here("data/IRTinfoSPI27.rdata"), 
+                               IRT_path = here("../IRTinfoSPI27.rdata"), 
                                order = c("score", "impute", "residualize"))
 
 # Save cleaned data -------------------------------------------------------

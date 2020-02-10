@@ -58,8 +58,8 @@ t_test_output = data_nested %>%
 # Bootstrap Cohen's D ----------------------------------------------------
 
 # number of bootstraps
-boot.n = 100
-#boot.n = 1000
+#boot.n = 100
+boot.n = 10000
 
 #helper function
 d_boot = function(split){

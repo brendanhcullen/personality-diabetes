@@ -25,8 +25,8 @@ train_data_split = list(train_spi_5 = train_data_pp %>% select(diabetes, spi_nam
 
 # 10-fold repeated cross-validation with SMOTE subsampling
 train_control = trainControl(method = "repeatedcv",
-                             number = 2, # number of folds = 10
-                             repeats = 2, # cross-validation is repeated 10 times
+                             number = 10, # number of folds = 10
+                             repeats = 10, # cross-validation is repeated 10 times
                              sampling = "smote") # use for resolving class imbalances
 
 # Specify tuning grids ----------------------------------------------------
@@ -46,8 +46,8 @@ multinom_args = NULL
 
 knn_args = NULL
 
-nnet_args = list(MaxNWts = as.character(2000),
-                 maxit = as.character(2000))
+nnet_args = list(MaxNWts = as.character(10000),
+                 maxit = as.character(10000))
 
 svmRadial_args = NULL
 

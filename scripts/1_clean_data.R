@@ -26,9 +26,14 @@ load(here("../SAPAdata07feb2017thru18nov2019.rdata"))
 # rename to 'data'
 data = SAPAdata07feb2017thru18nov2019
 
-# convert RID to factor so that later joins will work 
+# convert RID and diabetes to character to later joins will work properly
 data = data %>% 
-  mutate(RID = as.factor(RID))
+  mutate(RID = as.character(RID),
+         diabetes = as.character(diabetes),
+         p1occPrestige = as.numeric(p1occPrestige),
+         p1occIncomeEst = as.numeric(p1occIncomeEst),
+         p2occPrestige = as.numeric(p2occPrestige),
+         p2occIncomeEst = as.numeric(p2occIncomeEst))
 
 # Import toy data ---------------------------------------------------------
 

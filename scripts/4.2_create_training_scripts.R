@@ -60,6 +60,9 @@ else if (ml_model == "svmRadial") {
 else if (ml_model == "rpart2") {
   script_chunk_2 = "library(rpart)"
 }
+else if (ml_model == "rpart") {
+  script_chunk_2 = "library(rpart)"
+}
 
 script_chunk_3 = "
 

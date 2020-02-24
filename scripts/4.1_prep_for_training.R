@@ -57,6 +57,8 @@ rf_args = NULL
 
 rpart2_args = NULL
 
+rpart_args = NULL
+
 # Create master df --------------------------------------------------------
 
 # list of ML algorithms to run
@@ -66,7 +68,8 @@ model_list = list("multinom", # penalized multinomial logistic regression
                   "svmRadial", # support vector machine with radial basis function kernel
                   "lda", # linear discriminant analysis
                   "rf", # random forest
-                  "rpart2" # decision tree classifier
+                  "rpart2", # decision tree classifier
+                  "rpart" # inlcuding because of errors with rpart2
                   ) 
 
 # list of additonal arguments (these will be unique to each ML algorithm)

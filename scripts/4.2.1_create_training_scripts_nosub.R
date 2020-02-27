@@ -89,7 +89,7 @@ registerDoParallel(cluster)
   
 # specify where to save model output
 filename = 'ml_model_name_spi_scoring_name_fit.RDS'
-output_dir = here('output/machine_learning/training/model_fits/')
+output_dir = here('output/machine_learning/training/model_fits_nosub/')
 
 # save model output
 saveRDS(model, file = paste0(output_dir, filename)) 
@@ -106,7 +106,7 @@ stopCluster(cluster)
     
   # specify where to save resulting .R script
   filename = paste0(ml_model, "_", spi_scoring, ".R")
-  output_dir = here("output/machine_learning/training/scripts/")
+  output_dir = here("output/machine_learning/training/scripts_nosub/")
   
   # create .R script
   write_file(new_script, path = paste0(output_dir, filename))

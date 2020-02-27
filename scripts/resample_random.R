@@ -6,10 +6,12 @@
 
 load(here("output/data_cleaned.Rdata"))
 
+data_scored = train_data_pp
+
 probs = table(data_scored$diabetes)
-p_t1d = probs["t1d"]/sum(probs)
-p_t2d = probs["t2d"]/sum(probs)
-p_healthy = probs["healthy"]/sum(probs)
+p_t1d = probs["type1"]/sum(probs)
+p_t2d = probs["type2"]/sum(probs)
+p_healthy = probs["none"]/sum(probs)
 
 n = sum(probs)
 
@@ -28,13 +30,18 @@ real_data = data_scored$diabetes
 
 for(i in 1:num_resamples){
 random_pred = sample(x = unique(data_scored$diabetes), size = n, prob = c(p_healthy, p_t2d, p_t1d), replace = TRUE)
-CM = confusionMatrix(real_data, random_pred)
+CM = confusionMatrix(as.factor(real_data), as.factor(random_pred))
 
 acc[i] = CM$overall["Accuracy"]
-sens_healthy[i] = CM$byClass["Class: healthy", "Sensitivity"]
-spec_healthy[i] = CM$byClass["Class: healthy", "Specificity"]
-sens_t1d[i] = CM$byClass["Class: t1d", "Sensitivity"]
-spec_t1d[i] = CM$byClass["Class: t1d", "Specificity"]
-sens_t2d[i] = CM$byClass["Class: t2d", "Sensitivity"]
-spec_t2d[i] = CM$byClass["Class: t2d", "Specificity"]
+sens_healthy[i] = CM$byClass["Class: none", "Sensitivity"]
+spec_healthy[i] = CM$byClass["Class: none", "Specificity"]
+sens_t1d[i] = CM$byClass["Class: type1", "Sensitivity"]
+spec_t1d[i] = CM$byClass["Class: type1", "Specificity"]
+sens_t2d[i] = CM$byClass["Class: type2", "Sensitivity"]
+spec_t2d[i] = CM$byClass["Class: type2", "Specificity"]
 }
+
+
+hist(acc)
+mean(acc)
+median(acc)

@@ -32,8 +32,8 @@ train_control = trainControl(method = "repeatedcv",
 # 10-fold repeated cross-validation with NO subsampling
 train_control_nosub = trainControl(method = "repeatedcv",
                              number = 10, # number of folds = 10
-                             repeats = 10, # cross-validation is repeated 10 times
-                             sampling = "none") # no sub-sampling
+                             repeats = 10) # cross-validation is repeated 10 times
+
 
 
 # Specify tuning grids ----------------------------------------------------

@@ -1,3 +1,5 @@
+# need to run scripts resample_random.R and (4.4_compare_ml_models OR 4.4.1_compare_ml_models_nosub.R) first
+
 resamps$values %>% 
   gather("key", "value") %>%
   separate(key, into = c("key", "metric"), sep = "~") %>%

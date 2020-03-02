@@ -4,9 +4,7 @@
 # set probabilities
 # ---------------------
 
-load(here("output/data_cleaned.Rdata"))
-
-data_scored = train_data_pp
+data_scored = readRDS(here("output/machine_learning/training/train_data_pp.RDS"))
 
 probs = table(data_scored$diabetes)
 p_t1d = probs["type1"]/sum(probs)

@@ -27,12 +27,14 @@ train_data_split = list(train_spi_5 = train_data_pp %>% select(diabetes, spi_nam
 train_control = trainControl(method = "repeatedcv",
                              number = 10, # number of folds = 10
                              repeats = 10, # cross-validation is repeated 10 times
-                             sampling = "smote") # use for resolving class imbalances
+                             sampling = "smote", # use for resolving class imbalances
+                             classProbs = TRUE) 
 
 # 10-fold repeated cross-validation with NO subsampling
 train_control_nosub = trainControl(method = "repeatedcv",
                              number = 10, # number of folds = 10
-                             repeats = 10) # cross-validation is repeated 10 times
+                             repeats = 10, # cross-validation is repeated 10 times
+                             classProbs = TRUE) 
 
 
 

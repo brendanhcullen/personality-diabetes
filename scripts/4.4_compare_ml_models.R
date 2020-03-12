@@ -2,10 +2,12 @@ library(here)
 library(tidyverse)
 library(caret)
 library(pROC)
+library(randomForest)
 
 
 # Load in list of model fits ----------------------------------------------
-model_fits_dir = here("output/machine_learning/training/model_fits")
+#model_fits_dir = here("output/machine_learning/training/model_fits")
+model_fits_dir = "~/Desktop/soc-brownbag-pres/output/machine_learning/training/model_fits/"
 model_fits_names = list.files(model_fits_dir, pattern = "_fit.RDS") %>% 
   gsub("_fit.RDS", "", .)
 
@@ -30,6 +32,9 @@ dotplot(resamps, metric = "Kappa")
 
 # Accuracy ----------------------------------------------------------------
 
+width = .5
+library(RColorBrewer)
+
 accuracy_lollipop_plot <- resamps$values %>% 
   gather("key", "value") %>%
   separate(key, into = c("key", "metric"), sep = "~") %>%
@@ -49,6 +54,26 @@ accuracy_lollipop_plot <- resamps$values %>%
   coord_flip()
 
 ggsave(file = here::here("output/machine_learning/training/figs/accuracy_lollipop_plot.png"), plot = accuracy_lollipop_plot)
+
+# racing lanes
+accuracy_racing_lanes_plot <- resamps$values %>% 
+  gather("key", "value") %>%
+  separate(key, into = c("key", "metric"), sep = "~") %>%
+  mutate(key = as.factor(gsub("spi_", "", key))) %>%
+  separate(key, into = c("key", "num"), sep = "_") %>%
+  filter(metric == "Accuracy") %>% 
+  group_by(key, num) %>%
+  summarize(accuracy = mean(as.numeric(value)), na.rm=T) %>%
+  ggplot(aes(x = 0, y = accuracy, color = num)) +
+  geom_point(size = 3) +
+  facet_grid(key ~ ., scales = "free_x") +
+  scale_color_manual( values= brewer.pal(3, name = "Dark2")) +
+  scale_x_continuous("", breaks = NULL)+
+  coord_flip() +
+  theme(legend.title=element_blank())
+
+ggsave(file = here::here("output/machine_learning/training/figsaccuracy_racing_lanes_plot.png"), plot = accuracy_racing_lanes_plot)
+
 
 
 # Kappa -------------------------------------------------------------------
@@ -78,6 +103,32 @@ kappa_lollipop_plot <- resamps$values %>%
 
 ggsave(file = here::here("output/machine_learning/training/figs/kappa_lollipop_plot.png"), plot = kappa_lollipop_plot)
 
+#racing lanes
+
+kappa_racing_lanes_plot <- resamps$values %>% 
+  gather("key", "value") %>%
+  filter(key != "Resample") %>%
+  mutate(key = gsub("rpart2", "rparttwo", key)) %>%
+  #separate(key, into = c("key", "metric"), sep = "\\~") %>%
+  mutate(metric = ifelse(grepl("Accuracy", key), "Accuracy", "Kappa"),
+         num = parse_number(key),
+         key = gsub("_.*", "", key)) %>%
+  filter(!is.nan(value)) %>%
+  #separate(key, into = c("key", "num"), sep = "_") %>%
+  filter(metric == "Kappa") %>%
+  group_by(key, num) %>%
+  summarise(kappa = mean(as.numeric(value)), na.rm=T) %>% 
+  mutate(num = as.factor(num)) %>% 
+ggplot(aes(x = 0, y = kappa, color = num)) +
+  geom_point(size = 3) +
+  facet_grid(key ~ ., scales = "free_x") +
+  scale_color_manual( values= brewer.pal(3, name = "Dark2")) +
+  scale_x_continuous("", breaks = NULL)+
+  coord_flip() +
+  theme(legend.title=element_blank())
+
+ggsave(file = here::here("output/machine_learning/training/figs/kappa_racing_lanes_plot.png"), plot = kappa_racing_lanes_plot)
+
 # ROC AUC -----------------------------------------------------------------
 
 # calculate multiclass auc values
@@ -90,8 +141,7 @@ pred.v.actual <- data.frame(model = names(model_fits), stringsAsFactors = FALSE)
   mutate(actual = map(actual, function(x) x[,".outcome"])) %>% 
   mutate(multiclass_roc = map2(actual, predicted, multiclass.roc))
 
-width = .5
-library(RColorBrewer)
+
 #lollipops
 auc_lollipop_plot <- pred.v.actual %>%
   select(model_name, spi_scoring, multiclass_roc) %>%
@@ -109,13 +159,14 @@ ggsave(file = here::here("output/machine_learning/training/figs/auc_lollipop_plo
 #racing lanes
 auc_racing_lanes_plot <- pred.v.actual %>%
   select(model_name, spi_scoring, multiclass_roc) %>%
-  mutate(auc = map_dbl(multiclass_roc, "auc")) %>%
+  mutate(auc = map_dbl(multiclass_roc, "auc")) %>% 
   ggplot(aes(x = 0, y = auc, color = spi_scoring)) +
   geom_point(size = 3) +
   facet_grid(model_name ~ ., scales = "free_x") +
   scale_color_manual( values= brewer.pal(3, name = "Dark2")) +
-  scale_x_continuous("", breaks = NULL)+
-  coord_flip()
+  scale_x_continuous("", breaks = NULL) +
+  coord_flip() +
+  theme(legend.title=element_blank())
 
 ggsave(file = here::here("output/machine_learning/training/figs/auc_racing_lanes_plot.png"), plot = auc_racing_lanes_plot)
 

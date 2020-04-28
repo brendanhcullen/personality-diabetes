@@ -6,8 +6,7 @@ library(randomForest)
 
 
 # Load in list of model fits ----------------------------------------------
-#model_fits_dir = here("output/machine_learning/training/model_fits")
-model_fits_dir = "~/Desktop/soc-brownbag-pres/output/machine_learning/training/model_fits/"
+model_fits_dir = here("output/machine_learning/training/model_fits")
 model_fits_names = list.files(model_fits_dir, pattern = "_fit.RDS") %>% 
   gsub("_fit.RDS", "", .)
 

@@ -72,7 +72,7 @@ accuracy_racing_lanes_plot <- resamps$values %>%
   coord_flip() +
   theme(legend.title=element_blank())
 
-ggsave(file = here::here("output/machine_learning/training/figsaccuracy_racing_lanes_plot.png"), plot = accuracy_racing_lanes_plot)
+ggsave(file = here::here("output/machine_learning/training/figs/accuracy_racing_lanes_plot.png"), plot = accuracy_racing_lanes_plot)
 
 
 

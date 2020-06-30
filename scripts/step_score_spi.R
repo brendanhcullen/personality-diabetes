@@ -5,9 +5,9 @@ step_score_spi <- function(
   ..., 
   role = NA, 
   trained = FALSE, 
-  skip = FALSE,
-  id = rand_id("score_spi"),
   keys = NULL, 
+  skip = FALSE,
+  id = rand_id("score_spi")
 ) { 
   
   terms <- ellipse_check(...)
@@ -17,10 +17,10 @@ step_score_spi <- function(
     step_score_spi_new(
       terms = terms, 
       trained = trained,
+      keys = keys,
       role = role, 
       skip = skip,
-      id = id,
-      keys = keys)
+      id = id)
   )
 }
 
@@ -70,9 +70,12 @@ get_spi_names <- function(keys){
 # create the prep method 
 prep.step_score_spi <- function(x, training, info = NULL, ...) { 
   
-  spi_names <- get_spi_names(keys)
+  spi_names <- get_spi_names(x$keys)
   
-  keys <- keys[names(data_spi_135), ] %>% 
+  data_spi_135 <- training %>%
+    select(spi_names$spi_135)
+  
+  keys <- keys[names(training), ] %>% 
     select(contains("spi_135"))
   
   spi_5_keys <- keys %>% 

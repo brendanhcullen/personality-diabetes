@@ -71,8 +71,8 @@ rec <- recipe(diabetes ~ .,
   step_score_spi(all_of(spi_5_names), keys = keys) # custom step to score spi variables (start with just spi 5 for now)
 
 # prep the recipe
-data_prepped <- prep(rec)
+rec_prepped <- prep(rec)
 
-# check out the prepped data with `juice()`
-juice(data_prepped)
+# check out the prepped data with `bake()`
+bake(rec_prepped, newdata = data_train)
 

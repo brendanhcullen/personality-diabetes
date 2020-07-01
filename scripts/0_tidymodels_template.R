@@ -28,19 +28,19 @@ data <- data %>%
 source(here("scripts/preprocessing/get_spi_names.R"))
 
 # read in keys
-keys = read.csv(here("data/superKey.csv"), header = TRUE, row.names = 1)
+keys <- read.csv(here("data/superKey.csv"), header = TRUE, row.names = 1)
 
 # get SPI names
-spi_names = get_spi_names(keys)
-spi_5_names = spi_names$spi_5
-spi_27_names = spi_names$spi_27
-spi_135_names = spi_names$spi_135
-all_spi_names = unlist(spi_names, use.names = FALSE)
+spi_names <- get_spi_names(keys)
+spi_5_names <- spi_names$spi_5
+spi_27_names <- spi_names$spi_27
+spi_135_names <- spi_names$spi_135
+all_spi_names <- unlist(spi_names, use.names = FALSE)
 
 # min number of responses to SPI-135 items required to be included in analysis
-min_n_valid = 27
+min_n_valid <- 27
 
-data = data %>% 
+data <- data %>% 
   mutate(n_valid_135 = apply(.[,spi_135_names], 1, function(x) sum(!is.na(x)))) %>%  
   filter(!is.na(diabetes), # only people who responsed to diabetes question
          country == "USA", # only USA data
@@ -48,10 +48,20 @@ data = data %>%
   select(-n_valid_135)
 
 # only retain SPI items that are part of the SPI-135
-data = data %>% 
-  select(all_of(spi_135_names)) %>% 
-  cbind(select(data, -starts_with("q_")), .)
 
+demographic_vars <- c(
+  "age", # age
+  "ethnic",  # ethnicity
+  "jobstatus", # current job status
+  "education", "occPrestige", "occIncomeEst", # self SES
+  "p1edu", "p1occPrestige", "p1occIncomeEst", # parent 1 SES
+  "p2edu", "p2occPrestige", "p2occIncomeEst") # parent 2 SES
+
+data <- data %>% 
+  select(c(RID, 
+          diabetes, 
+          all_of(demographic_vars), 
+          all_of(spi_135_names)))
 
 # Split data --------------------------------------------------------------
 set.seed(123)
@@ -63,16 +73,14 @@ data_test <- testing(data_split)
 
 # Pre-processing ----------------------------------------------------------
 
-source(here("scripts", "step_score_spi.R"))
+source(here("scripts", "step_score_spi_5.R"))
 
-
-rec <- recipe(diabetes ~ ., 
-       data_train) %>% 
-  step_score_spi(all_of(spi_5_names), keys = keys) # custom step to score spi variables (start with just spi 5 for now)
+rec <- recipe(diabetes ~ ., data_train) %>% 
+  step_score_spi_5(spi_135_names, keys = keys) # score spi_5 variables
 
 # prep the recipe
-rec_prepped <- prep(rec)
+rec_prep <- prep(rec)
 
 # check out the prepped data with `bake()`
-bake(rec_prepped, newdata = data_train)
+bake(rec_prep, new_data = data_train) %>% View()
 

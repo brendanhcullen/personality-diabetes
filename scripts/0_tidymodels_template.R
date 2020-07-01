@@ -74,10 +74,15 @@ data_test <- testing(data_split)
 # Pre-processing ----------------------------------------------------------
 
 source(here("scripts", "step_score_spi_5.R"))
+source(here("scripts", "step_score_spi_27.R"))
 
 rec <- recipe(diabetes ~ ., data_train) %>% 
-  step_score_spi_5(spi_135_names, keys = keys) # score spi_5 variables
-
+  step_score_spi_5(spi_135_names, # score spi_5 (sum scoring)
+                   keys = keys) %>% 
+  step_score_spi_27(spi_135_names, # score spi_27 (IRT scoring)
+                    keys = keys, 
+                    IRT_path = here("../IRTinfoSPI27.rdata"))
+  
 # prep the recipe
 rec_prep <- prep(rec)
 

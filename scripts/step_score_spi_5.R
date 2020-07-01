@@ -75,8 +75,10 @@ prep.step_score_spi_5 <- function(x, training, info = NULL, ...) {
   
   spi_5_names <- get_spi_names(x$keys)$spi_5
   
+  # select only the spi_135 items
   data_spi_135 <- training[, col_names]
   
+  # subset keys
   keys <- x$keys[names(data_spi_135), ] %>% 
     select(contains("spi_135"))
   

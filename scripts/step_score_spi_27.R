@@ -1,3 +1,6 @@
+# `step_score_spi_27` creates a *specification* of a recipe
+# step that will score the spi_27 variables using Item Response Theory (IRT) parameters
+# and add them to the data. Note: IRT paramaters are read in from an external .rdata file 
 
 # define user-facing function
 step_score_spi_27 <- function(
@@ -73,24 +76,6 @@ get_spi_names <- function(keys){
 # create the prep method 
 prep.step_score_spi_27 <- function(x, training, info = NULL, ...) { 
   
-  # # translate the specification listed in the terms argument to column names in the current data
-  # col_names <- terms_select(terms = x$terms, info = info) 
-  # 
-  # # select only the spi_135 items
-  # data_spi_135 <- training[, col_names]
-  # 
-  # # load IRT calibrations
-  # load(x$IRT_path)
-  # 
-  # # IRT score
-  # dataSet <- subset(data_spi_135, select = c(orderForItems))
-  # 
-  # # create empty matrix
-  # SPIirtScores <- matrix(nrow=dim(dataSet)[1], ncol=27)
-  # 
-  # # spi_27 names
-  # scaleNames <- gsub("SPI27_", "", names(IRToutputSPI27))
-  
   # wrangle keys
   spi_keys <- x$keys %>%
     select(matches("SPI_135")) %>%
@@ -101,8 +86,6 @@ prep.step_score_spi_27 <- function(x, training, info = NULL, ...) {
   
   # update keys
   x$keys <- spi_keys
-  
-  
   
   ## Use the constructor function to return the updated object. 
   ## Note that `trained` is now set to TRUE

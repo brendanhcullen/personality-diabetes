@@ -1,3 +1,6 @@
+# `step_score_spi_5` creates a *specification* of a recipe
+# step that will score the spi_5 variables with sum scoring
+# and add them to the data
 
 # define user-facing function
 step_score_spi_5 <- function(

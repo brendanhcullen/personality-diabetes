@@ -1,6 +1,7 @@
 # `step_score_spi_27` creates a *specification* of a recipe
-# step that will score the spi_27 variables using Item Response Theory (IRT) parameters
-# and add them to the data. Note: IRT paramaters are read in from an external .rdata file 
+# step that will score the spi_27 variables using psych::scoreIrt 
+# and Item Response Theory (IRT) parameters that are read in from an external .rdata file 
+# and add the resulting 27 variables to the data.
 
 # define user-facing function
 step_score_spi_27 <- function(

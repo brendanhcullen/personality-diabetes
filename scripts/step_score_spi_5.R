@@ -1,6 +1,6 @@
 # `step_score_spi_5` creates a *specification* of a recipe
-# step that will score the spi_5 variables with sum scoring
-# and add them to the data
+# step that will score the spi_5 items using psych::scoreItems (mean scoring)
+# and add the resulting 5 variables to the data
 
 # define user-facing function
 step_score_spi_5 <- function(

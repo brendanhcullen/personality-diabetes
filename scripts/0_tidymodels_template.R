@@ -5,6 +5,7 @@ library(tidyverse)
 library(tidymodels)
 library(here)
 library(janitor)
+library(missMDA)
 
 # Import data -------------------------------------------------------------
 
@@ -17,9 +18,9 @@ data <- SAPAdata07feb2017thru18nov2019
 # remove all objects except data 
 rm(list=setdiff(ls(), "data"))
 
-# sample 10% of data for more speed
+# sample 1% of data for more speed
 data <- data %>% 
-  sample_frac(.1)
+  sample_frac(.01)
 
 
 # Basic data cleaning -----------------------------------------------------
@@ -75,13 +76,15 @@ data_test <- testing(data_split)
 
 source(here("scripts", "step_score_spi_5.R"))
 source(here("scripts", "step_score_spi_27.R"))
+source(here("scripts", "step_impute_pca.R"))
 
 rec <- recipe(diabetes ~ ., data_train) %>% 
   step_score_spi_5(spi_135_names, # score spi_5 (sum scoring)
-                   keys = keys) %>% 
+                   keys = keys) %>%
   step_score_spi_27(spi_135_names, # score spi_27 (IRT scoring)
-                    keys = keys, 
-                    IRT_path = here("../IRTinfoSPI27.rdata"))
+                    keys = keys,
+                    IRT_path = here("../IRTinfoSPI27.rdata")) %>%
+  step_impute_pca(spi_135_names)
   
 # prep the recipe
 rec_prep <- prep(rec)

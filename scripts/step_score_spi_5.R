@@ -107,10 +107,16 @@ prep.step_score_spi_5 <- function(x, training, info = NULL, ...) {
 bake.step_score_spi_5 <- function(object, new_data, ...) {
   
   # score the Big 5 scales
-  scored <- psych::scoreItems(object$keys, new_data)
+  # Note: must use scoreVeryFast() instead of scoreItems()
+  #scored <- psych::scoreItems(object$keys, new_data, impute = "none") # this doesn't give expected values
+  
+  # Note: must coerce `keys` to a matrix, otherwise the function will throw an error:
+  #  "I think you reversed keys and items.  I am stopping "
+  scored <- psych::scoreVeryFast(keys = as.matrix(object$keys), items = new_data)
   
   # extract just the data frame of scores
-  spi_5_scores <- as_tibble(scored$scores)
+  # spi_5_scores <- as_tibble(scored$scores) # use this if using scoreItems()
+  spi_5_scores <- as_tibble(scored)
   
   # get spi_5 names
   spi_5_names <- get_spi_names(object$keys)$spi_5

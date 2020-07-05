@@ -72,6 +72,8 @@ bake.step_impute_pca <- function(object, new_data, ...) {
   
   # select only variables to impute
   data_to_impute <- new_data[, col_names]
+  
+  # coerce to data.frame to avoid weird error message
   data_to_impute <- as.data.frame(data_to_impute)
   
   # use fa.parallel to determine number of principal components
@@ -96,7 +98,7 @@ bake.step_impute_pca <- function(object, new_data, ...) {
   data_imputed <- sipca_local(data_df = data_to_impute, 
                               num_components = pc_number)
   
-  # replace the columns containing missing data with mputed data
+  # replace the columns containing missing data with imputed data
   new_data[, col_names] <- data_imputed
   
   ## Always convert to tibbles on the way out

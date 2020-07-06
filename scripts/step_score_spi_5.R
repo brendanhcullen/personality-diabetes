@@ -73,22 +73,14 @@ get_spi_names <- function(keys){
 # create the prep method 
 prep.step_score_spi_5 <- function(x, training, info = NULL, ...) { 
   
-  # translate the specification listed in the terms argument to column names in the current data
-  col_names <- terms_select(terms = x$terms, info = info) 
-  
-  spi_5_names <- get_spi_names(x$keys)$spi_5
-  
-  # select only the spi_135 items
-  data_spi_135 <- training[, col_names]
-  
-  # subset keys
-  keys <- x$keys[names(data_spi_135), ] %>% 
-    select(contains("spi_135"))
-  
-  spi_5_keys <- keys %>% 
+ # extract only spi_5 keys 
+  x$keys <- x$keys %>% 
+    rownames_to_column() %>% 
+    filter(rowname %in% spi_135_names) %>% 
+    column_to_rownames() %>% 
+    select(contains("spi_135")) %>% 
     select(contains(spi_5_names))
-  
-  x$keys <- spi_5_keys
+    
   
   ## Use the constructor function to return the updated object. 
   ## Note that `trained` is now set to TRUE

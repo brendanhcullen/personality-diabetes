@@ -5,7 +5,8 @@ library(tidyverse)
 library(tidymodels)
 library(here)
 library(janitor)
-library(missMDA)
+library(missMDA) # for imputing missing data
+library(themis) # for SMOTE subsampling
 
 # Import data -------------------------------------------------------------
 
@@ -87,9 +88,9 @@ data_test <- testing(data_split)
 custom_recipe_scripts <- list.files(here("scripts", "recipe_steps"), full.names = TRUE)
 walk(custom_recipe_scripts, source)
 
-rec <- recipe(diabetes ~ ., data_train) %>% 
-  update_role(RID, new_role = "ID") %>%
-  update_role(demographic_vars, new_role = "covariate") %>% 
+rec <- recipe(diabetes ~ ., data = data_train) %>% 
+  update_role(RID, new_role = "id") %>%
+  update_role(demographic_vars, new_role = "covariate") %>%
   step_score_spi_5(spi_135_names, # score spi_5 (mean scoring)
                    keys = keys,
                    role = "predictor") %>%
@@ -97,12 +98,19 @@ rec <- recipe(diabetes ~ ., data_train) %>%
                     keys = keys,
                     IRT_path = here("../IRTinfoSPI27.rdata"),
                     role = "predictor") %>%
-  step_impute_pca(spi_135_names) %>% 
-  step_residualize(all_spi_names, vtc = demographic_vars, id_var = "RID")
+  step_impute_pca(all_spi_names) %>% # impute missing values in all spi variables
+  step_residualize(all_spi_names, vtc = demographic_vars, id_var = "RID") %>%
+  step_rm(has_role("id"), has_role("covariate")) %>% # remove non-numeric vars before SMOTE
+  step_normalize(all_predictors()) %>% # need to center and scale all numeric predictors before SMOTE
+  # `step_smote()` generates new examples of the minority classes using nearest neighbors algorithm 
+  # Note: skip = TRUE because we don't want to apply SMOTE to the test data
+  step_smote(diabetes, skip = TRUE) 
   
 # prep the recipe
 rec_prep <- prep(rec)
 
+juiced <- juice(rec_prep)
+
 # check out the prepped data with `bake()`
-bake(rec_prep, new_data = data_train)
+baked <- bake(rec_prep, new_data = data_train)
 

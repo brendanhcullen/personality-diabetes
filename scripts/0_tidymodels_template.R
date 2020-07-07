@@ -12,13 +12,22 @@ library(missMDA)
 # load raw data
 load(here("../SAPAdata07feb2017thru18nov2019.rdata"))
 
-# rename to 'data'
-data <- SAPAdata07feb2017thru18nov2019
+# rename to 'data' and convert to tibble
+data <- as_tibble(SAPAdata07feb2017thru18nov2019)
+
+data <- data %>% 
+  mutate(RID = as.character(RID)) %>% 
+  mutate_at(c("p1occPrestige", 
+              "p1occIncomeEst",
+              "p2occPrestige",
+              "p2occIncomeEst"),
+            as.numeric)
 
 # remove all objects except data 
 rm(list=setdiff(ls(), "data"))
 
 # sample 1% of data for more speed
+set.seed(123)
 data <- data %>% 
   sample_frac(.01)
 
@@ -74,21 +83,24 @@ data_test <- testing(data_split)
 
 # Pre-processing ----------------------------------------------------------
 
-source(here("scripts", "step_score_spi_5.R"))
-source(here("scripts", "step_score_spi_27.R"))
-source(here("scripts", "step_impute_pca.R"))
+# source scripts containing custom recipe steps
+custom_recipe_scripts <- list.files(here("scripts", "recipe_steps"), full.names = TRUE)
+walk(custom_recipe_scripts, source)
 
 rec <- recipe(diabetes ~ ., data_train) %>% 
-  step_score_spi_5(spi_135_names, # score spi_5 (sum scoring)
+  update_role(RID, new_role = "ID") %>%
+  update_role(demographic_vars, new_role = "covariate") %>% 
+  step_score_spi_5(spi_135_names, # score spi_5 (mean scoring)
                    keys = keys) %>%
   step_score_spi_27(spi_135_names, # score spi_27 (IRT scoring)
                     keys = keys,
                     IRT_path = here("../IRTinfoSPI27.rdata")) %>%
-  step_impute_pca(spi_135_names)
+  step_impute_pca(spi_135_names) %>% 
+  step_residualize(all_spi_names, vtc = demographic_vars, id_var = "RID")
   
 # prep the recipe
 rec_prep <- prep(rec)
 
 # check out the prepped data with `bake()`
-bake(rec_prep, new_data = data_train) %>% View()
+bake(rec_prep, new_data = data_train)
 

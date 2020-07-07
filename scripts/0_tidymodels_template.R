@@ -91,10 +91,12 @@ rec <- recipe(diabetes ~ ., data_train) %>%
   update_role(RID, new_role = "ID") %>%
   update_role(demographic_vars, new_role = "covariate") %>% 
   step_score_spi_5(spi_135_names, # score spi_5 (mean scoring)
-                   keys = keys) %>%
+                   keys = keys,
+                   role = "predictor") %>%
   step_score_spi_27(spi_135_names, # score spi_27 (IRT scoring)
                     keys = keys,
-                    IRT_path = here("../IRTinfoSPI27.rdata")) %>%
+                    IRT_path = here("../IRTinfoSPI27.rdata"),
+                    role = "predictor") %>%
   step_impute_pca(spi_135_names) %>% 
   step_residualize(all_spi_names, vtc = demographic_vars, id_var = "RID")
   

@@ -74,5 +74,7 @@ data_clean <- data %>%
            all_of(spi_135_names)))
 
 # Save data -------------------------------------------------------
-saveRDS(spi_names, file = here("output", "tidymodels", "spi_names.RDS"))
+save(list = c("spi_5_names", "spi_27_names", "spi_135_names", "all_spi_names"), file = here("output", "tidymodels", "spi_names.Rdata"))
+saveRDS(demographic_vars, file = here("output", "tidymodels", "demographic_vars.RDS"))
 saveRDS(data_clean, file = here("output", "tidymodels", "data_clean.RDS"))
+saveRDS(keys, file = here("output", "tidymodels", "keys.RDS"))

@@ -1,11 +1,11 @@
+# This script takes in raw SAPA data, filters it according to inclusion criteria, and 
+# selects only the relevant variables for pre-processing and modelling.
 
 # Load libraries
 library(tidyverse)
 library(tidymodels)
 library(here)
 library(janitor)
-library(missMDA) # for imputing missing data
-library(themis) # for SMOTE subsampling
 
 # Import data -------------------------------------------------------------
 
@@ -18,16 +18,15 @@ data <- as_tibble(SAPAdata07feb2017thru18nov2019)
 # convert data types
 data <- data %>% 
   mutate(RID = as.character(RID)) %>% 
-  mutate_at(c("p1occPrestige", 
-              "p1occIncomeEst",
-              "p2occPrestige",
-              "p2occIncomeEst"),
+  mutate_at(c("p1occPrestige", "p1occIncomeEst", "p2occPrestige", "p2occIncomeEst"),
             as.numeric)
 
 # remove all objects except data 
 rm(list=setdiff(ls(), "data"))
 
-# sample fraction of data for more speed
+# Sample fraction of data ----------------------------------
+
+# ***TEMPORARY FOR MORE SPEED***
 set.seed(123)
 data <- data %>% 
   sample_frac(.2)
@@ -68,25 +67,12 @@ demographic_vars <- c(
   "p2edu", "p2occPrestige", "p2occIncomeEst") # parent 2 SES
 
 # only retain spi-135 items and demographic vars
-data <- data %>% 
+data_clean <- data %>% 
   select(c(RID, 
            diabetes, 
            all_of(demographic_vars), 
            all_of(spi_135_names)))
 
-# Split data --------------------------------------------------------------
-set.seed(123)
-
-# split data and stratify by diabetes 
-# i.e. ensure equal proportions of diabetes groups in training and testing
-data_split <- initial_split(data, strata = diabetes)
-
-# extract training and testing data
-data_train <- training(data_split)
-data_test <- testing(data_split)
-
-# Save cleaned data -------------------------------------------------------
-saveRDS(spi_names, file = here("output/tidymodels/spi_names.RDS"))
-saveRDS(data_train, file = here("output/tidymodels/data_train.RDS"))
-saveRDS(data_test, file = here("output/tidymodels/data_test.RDS"))
-saveRDS(data_split, file = here("output/tidymodels/data_split.RDS"))
+# Save data -------------------------------------------------------
+saveRDS(spi_names, file = here("output", "tidymodels", "spi_names.RDS"))
+saveRDS(data_clean, file = here("output", "tidymodels", "data_clean.RDS"))

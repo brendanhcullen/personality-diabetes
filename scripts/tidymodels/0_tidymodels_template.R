@@ -143,7 +143,7 @@ rec_spi_27 <- recipe(diabetes ~ ., data = data_train) %>%
                     keys = keys,
                     IRT_path = here("../IRTinfoSPI27.rdata"),
                     role = "predictor") %>%
-  step_impute_pca(spi_27_names) %>% 
+  #step_impute_pca(spi_27_names) %>% 
   step_residualize(spi_27_names, vtc = demographic_vars, id_var = "RID") %>%
   step_rm(has_role("id"), has_role("covariate")) %>% 
   step_rm(spi_135_names) %>% 
@@ -162,8 +162,8 @@ rec_spi_135 <- recipe(diabetes ~ ., data = data_train) %>%
 
 # Test out recipe(s) ------------------------------------------------------
 
-# # prep 
-# prepped <- prep(rec_spi_135)
+# # prep
+# prepped <- prep(rec_spi_27)
 # 
 # # juice
 # juiced <- juice(prepped)
@@ -173,15 +173,25 @@ rec_spi_135 <- recipe(diabetes ~ ., data = data_train) %>%
 
 # Model specification -----------------------------------------------------
 
-multinom_reg_spec_notune <- multinom_reg() %>%
-  set_engine("nnet") %>%
-  set_mode("classification")
-
 # penalized multinomial logistic regression
 multinom_reg_spec <- multinom_reg() %>% 
   set_engine("nnet") %>% 
   set_mode("classification") %>% 
   set_args(penalty = tune())
+
+# random forest
+
+cores <- parallel::detectCores()
+cores
+
+rf_spec <- 
+  rand_forest() %>% 
+  set_engine("ranger", 
+             num.threads = cores) %>% 
+  set_mode("classification") %>% 
+  set_args(mtry = tune(),
+           min_n = tune(),
+           trees = 1000)
 
 # Create workflow ---------------------------------------------------------
 
@@ -192,30 +202,25 @@ multinom_reg_spi_5_wflow <-
   add_recipe(rec_spi_5) %>% 
   add_model(multinom_reg_spec)
 
-multinom_reg_spi_27_wflow <- 
+rf_spi_5_wflow <- 
   workflow() %>% 
-  add_recipe(rec_spi_27) %>% 
-  add_model(multinom_reg_spec)
+  add_recipe(rec_spi_5) %>% 
+  add_model(rf_spec)
 
-multinom_reg_spi_135_wflow <- 
-  workflow() %>% 
-  add_recipe(rec_spi_135) %>% 
-  add_model(multinom_reg_spec)
-
-multinom_reg_spi_5_wflow_notune <-
-  workflow() %>%
-  add_recipe(rec_spi_5) %>%
-  add_model(multinom_reg_spec_notune)
-
+# multinom_reg_spi_27_wflow <- 
+#   workflow() %>% 
+#   add_recipe(rec_spi_27) %>% 
+#   add_model(multinom_reg_spec)
+# 
+# multinom_reg_spi_135_wflow <- 
+#   workflow() %>% 
+#   add_recipe(rec_spi_135) %>% 
+#   add_model(multinom_reg_spec)
 
 # Hyperparameter tuning ---------------------------------------------------
 
 # no cross-validation
 
-fit_res_nocv <- fit(
-  multinom_reg_spi_5_wflow_notune,
-  data = data_train
-)
 
 # cross-validation + no tuning
 fit_res_spi_5_notune <- fit_resamples(
@@ -225,31 +230,28 @@ fit_res_spi_5_notune <- fit_resamples(
                               save_pred = TRUE)
 )
 
-doParallel::registerDoParallel()
-set.seed(123)
+
+# multinom reg tuning grid
+multinom_grid <- grid_regular(penalty(), 
+                              levels = 10)
+# rf tuning grid (note that mtry can't be larger than 5 for spi_5 because there are only 5 predictors)
+rf_grid <- grid_regular(mtry(range = c(1, 5)),
+                        min_n(),
+                        levels = 5)
+
 # cross-validation + tuning
-tune_res_spi_5 <- tune_grid(
+tune_res_multinom_reg_spi_5 <- tune_grid(
   multinom_reg_spi_5_wflow,
   resamples = cv_folds,
-  grid = 2,
+  grid = multinom_grid,
   control = control_resamples(verbose = TRUE,
                               save_pred = TRUE)
 )
 
-# cross-validation + tuning
-tune_res_spi_27 <- tune_grid(
-  multinom_reg_spi_27_wflow,
+tune_res_rf_spi_5 <- tune_grid(
+  rf_spi_5_wflow,
   resamples = cv_folds,
-  grid= 2,
-  control = control_resamples(verbose = TRUE,
-                              save_pred = TRUE)
-)
-
-# cross-validation + tuning
-tune_res_spi_135 <- tune_grid(
-  multinom_reg_spi_135_wflow,
-  resamples = cv_folds,
-  grid= 2,
+  grid = rf_grid,
   control = control_resamples(verbose = TRUE,
                               save_pred = TRUE)
 )
@@ -262,37 +264,55 @@ multinom_reg_spi_5_best <-
   tune_res_spi_5 %>% 
   select_best(metric = "roc_auc")
 
+rf_reg_spi_5_best <-
+  tune_res_rf_spi_5 %>% 
+  select_best(metric = "roc_auc")
+
 last_multinom_reg_spi_5_wflow <- 
   multinom_reg_spi_5_wflow %>%
   finalize_workflow(multinom_reg_spi_5_best)
 
-# Other models specs ------------------------------------------------------
+last_rf_spi_5_wflow <- 
+  rf_spi_5_wflow %>%
+  finalize_workflow(rf_reg_spi_5_best)
 
-# decision tree
-tree_spec <- decision_tree() %>%
-  set_engine("rpart") %>%
-  set_mode("classification")
+# Predict on test set -----------------------------------------------------
+
+# use tune::last_fit()
+
+# fit to entire training data
+final_multinom <- 
+  last_multinom_reg_spi_5_wflow %>% 
+  fit(data = data_train)
+
+final_rf <- 
+  last_rf_spi_5_wflow %>% 
+  fit(data = data_train)
+
+# vip
+library(vip)
+
+final_multinom %>% 
+  pull_workflow_fit() %>% 
+  vip()
+
+final_rf %>% 
+  pull_workflow_fit() %>% 
+  vip()
 
 
-# random forest
-cores <- parallel::detectCores()
-cores
+## predict on test set 
 
-rf_spec <- 
-  rand_forest(mtry = tune(),
-              min_n = tune(),
-              trees = 1000) %>% 
-  set_engine("ranger", 
-             num.threads = cores) %>% 
-  set_mode("classification")
+# multinom 
+last_fit(last_multinom_reg_spi_5_wflow ,
+         split = data_split) %>% 
+  collect_predictions() %>% 
+  roc_curve(diabetes, .pred_type1, .pred_type2, .pred_none) %>% 
+  autoplot()
 
-knn_spec <- nearest_neighbor() %>%
-  set_engine("kknn") %>%
-  set_mode("classification")
-
-lda_spec <- discrim_linear() %>% 
-  set_engine("MASS") %>% 
-  set_mode("classification")
-
-
-
+# rf
+last_fit(last_rf_spi_5_wflow ,
+         split = data_split) %>% 
+  collect_predictions() %>% 
+  roc_curve(diabetes, .pred_type1, .pred_type2, .pred_none) %>% 
+  autoplot()

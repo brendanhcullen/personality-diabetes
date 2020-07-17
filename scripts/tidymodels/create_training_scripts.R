@@ -57,6 +57,18 @@ create_script <- function(model_name,
       pluck(1)
       
         ")
+  
+  # extract tuning grid
+  tuning_grid <- 
+    glue("
+    # select tuning grid
+    tuning_grid <- 
+      train_master_df %>% 
+      filter(model_name == '{model_name}' & spi_scoring == '{spi_scoring}') %>% 
+      pull(tuning_grid) %>% 
+      pluck(1)
+      
+        ")
 
   # perform hyperparameter tuning  
   tune <- 
@@ -65,7 +77,7 @@ create_script <- function(model_name,
   tune_res <- tune_grid(
     wflow,
     resamples = cv_folds,
-    grid = 10,
+    grid = tuning_grid,
     metrics = metric_set(kap, accuracy, roc_auc),
     control = control_resamples(verbose = TRUE,
                               save_pred = TRUE))
@@ -84,7 +96,7 @@ create_script <- function(model_name,
         ")
 
   # combine script chunks together
-  full_script <- paste(setup, workflow, tune, save_fit, sep = "\n")
+  full_script <- paste(setup, workflow, tuning_grid, tune, save_fit, sep = "\n")
   
   # specify where to save resulting .R script
   filename <-  paste0(model_name, "_", spi_scoring, ".R")

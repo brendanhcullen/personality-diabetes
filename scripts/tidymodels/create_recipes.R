@@ -85,6 +85,10 @@ rec_spi_135 <- recipe(diabetes ~ ., data = data_train) %>%
 
 # Save recipes ------------------------------------------------------------
 
-saveRDS(rec_spi_5, file = here("output", "tidymodels", "recipes", "rec_spi_5.RDS"))
-saveRDS(rec_spi_27, file = here("output", "tidymodels", "recipes", "rec_spi_27.RDS"))
-saveRDS(rec_spi_135, file = here("output", "tidymodels", "recipes", "rec_spi_135.RDS"))
+# put recipes into a list
+recipes <- list(rec_spi_5 = rec_spi_5,
+                rec_spi_27 = rec_spi_27,
+                rec_spi_135 = rec_spi_135)
+
+saveRDS(recipes, file = here("output", "tidymodels", "recipes.RDS"))
+

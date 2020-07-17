@@ -6,11 +6,11 @@ library(here)
 library(tidyverse)
 library(tidymodels)
 
-
 # Load recipes and model specs --------------------------------------------
 
 recipes <- readRDS(here("output", "tidymodels", "recipes.RDS"))
 model_specs <- readRDS(here("output", "tidymodels", "model_specs.RDS"))
+tuning_grids <- readRDS(here("output", "tidymodels", "tuning_grids.RDS"))
 
 # Create master df --------------------------------------------------------
 
@@ -29,7 +29,9 @@ train_master_df <-
   # add list column with model specs
   mutate(model_spec = rep(model_specs, each = length(spi_versions))) %>% 
   # add list column with workflows that bundle recipes and model specs
-  mutate(workflow = map2(model_spec, recipe, ~workflow() %>% add_model(.x) %>% add_recipe(.y)))
+  mutate(workflow = map2(model_spec, recipe, ~workflow() %>% add_model(.x) %>% add_recipe(.y))) %>% 
+  # add tuning grids
+  left_join(tuning_grids)
 
 # add unique names to each workflow object
 names(train_master_df$workflow) <- 

@@ -26,10 +26,10 @@ rm(list=setdiff(ls(), "data"))
 
 # Sample fraction of data ----------------------------------
 
-# ***TEMPORARY FOR MORE SPEED***
-set.seed(123)
-data <- data %>% 
-  sample_frac(.2)
+# # ***TEMPORARY FOR MORE SPEED***
+# set.seed(123)
+# data <- data %>% 
+#   sample_frac(.2)
 
 # Basic data cleaning -----------------------------------------------------
 

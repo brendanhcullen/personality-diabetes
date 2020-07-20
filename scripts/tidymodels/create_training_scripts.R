@@ -11,6 +11,9 @@ library(here)
 
 train_master_df <- readRDS(here("output", "tidymodels", "train_master_df.RDS"))
 
+
+# Define function to create scripts ---------------------------------------
+
 create_script <- function(model_name, 
                           spi_scoring, 
                           workflow,
@@ -104,6 +107,9 @@ create_script <- function(model_name,
   # create .R script
   write_file(full_script, path = paste(script_output_dir, filename, sep = "/"))
 }
+
+
+# Create scripts ----------------------------------------------------------
 
 # create separate training scripts for each unique model/spi combination
 train_master_df <- train_master_df %>% 

@@ -5,6 +5,7 @@
 library(tidyverse)
 library(tidymodels)
 library(here)
+library(discrim)
 
 # Model specs -------------------------------------------------------------
 

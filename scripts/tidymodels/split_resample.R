@@ -26,7 +26,7 @@ data_test <- testing(data_split)
 # 10-fold cross-validation
 set.seed(123)
 cv_folds <- vfold_cv(data_train, 
-                     v = 2, # 10 folds
+                     v = 10, # 10 folds
                      strata = diabetes) # maintain diabetes proportions within each fold
 
 # Save data ---------------------------------------------------------------

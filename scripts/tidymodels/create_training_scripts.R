@@ -73,6 +73,13 @@ create_script <- function(model_name,
       
         ")
 
+  # load additional libraries
+  extra_libs <- ""
+  
+  if(model_name == "lda") {
+    extra_libs = "library(discrim)"
+  }
+  
   # perform hyperparameter tuning  
   tune <- 
     glue("
@@ -99,7 +106,13 @@ create_script <- function(model_name,
         ")
 
   # combine script chunks together
-  full_script <- paste(setup, workflow, tuning_grid, tune, save_fit, sep = "\n")
+  full_script <- paste(setup, 
+                       workflow, 
+                       tuning_grid, 
+                       extra_libs,
+                       tune, 
+                       save_fit, 
+                       sep = "\n")
   
   # specify where to save resulting .R script
   filename <-  paste0(model_name, "_", spi_scoring, ".R")

@@ -44,7 +44,7 @@ create_script <- function(model_name,
     load(here('output', 'tidymodels', 'spi_names.Rdata'))
     
     # source scripts containing custom recipe steps
-    custom_recipe_scripts <- list.files(here('scripts', 'tidymodels', 'custom_rec_steps'), full.names = TRUE)
+    custom_recipe_scripts <- list.files(here('scripts', 'tidymodels', 'custom_rec_steps'), pattern = 'step_*', full.names = TRUE)
     walk(custom_recipe_scripts, source)
     
         ")

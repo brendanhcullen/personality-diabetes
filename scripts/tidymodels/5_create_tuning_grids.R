@@ -1,9 +1,11 @@
 
+library(here)
+library(tidyverse)
+library(tidymodels)
 
 # Load spi names ----------------------------------------------------------
 
 load(here('output', 'tidymodels', 'spi_names.Rdata'))
-
 
 # Multinomial logistic regression -----------------------------------------
 

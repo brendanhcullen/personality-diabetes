@@ -40,3 +40,6 @@ IRTinfoSPI27.rdata
 
 # output folder
 output/*
+
+# .DS_Store
+.DS_Store

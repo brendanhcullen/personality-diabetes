@@ -96,8 +96,8 @@ create_script <- function(model_name,
     resamples = cv_folds,
     grid = tuning_grid,
     metrics = metric_set(kap, accuracy, roc_auc),
-    control = control_resamples(verbose = TRUE,
-                              save_pred = TRUE))
+    control = control_grid(verbose = TRUE,
+                           save_pred = TRUE))
   
   ## stop parallelization                            
   stopCluster(cl)

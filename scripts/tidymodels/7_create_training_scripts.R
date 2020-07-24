@@ -86,7 +86,8 @@ create_script <- function(model_name,
   # hyperparamter tuning
   
   ## initialize parallelization
-  num_cores <- parallel::detectCores(logical = FALSE)
+  #num_cores <- parallel::detectCores(logical = FALSE)
+  num_cores <- 8 # hard code to this number matches number of CPU's requested on Talapas
   cl <- parallel::makeForkCluster(num_cores)
   doParallel::registerDoParallel(cl)
   

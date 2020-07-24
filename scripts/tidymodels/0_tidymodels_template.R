@@ -28,9 +28,9 @@ data <- data %>%
 rm(list=setdiff(ls(), "data"))
 
 # sample 1% of data for more speed
-set.seed(123)
-data <- data %>% 
-  sample_frac(.2)
+# set.seed(123)
+# data <- data %>% 
+#   sample_frac(.2)
 
 
 # Basic data cleaning -----------------------------------------------------
@@ -88,39 +88,39 @@ data_test <- testing(data_split)
 
 # 10-fold cross-validation
 set.seed(123)
-cv_folds <- vfold_cv(data_train, v = 2, strata = diabetes)
+cv_folds <- vfold_cv(data_train, v = 10, strata = diabetes)
 
 # Pre-processing ----------------------------------------------------------
 
 # source scripts containing custom recipe steps
-custom_recipe_scripts <- list.files(here("scripts", "tidymodels", "recipe_steps"), full.names = TRUE)
+custom_recipe_scripts <- list.files(here("scripts", "tidymodels", "custom_rec_steps"), full.names = TRUE)
 walk(custom_recipe_scripts, source)
 
-# general recipe template
-rec <- recipe(diabetes ~ ., data = data_train) %>% 
-  update_role(RID, new_role = "id") %>%
-  update_role(demographic_vars, new_role = "covariate") %>%
-  # score spi_5 (mean scoring)
-  step_score_spi_5(spi_135_names, 
-                   keys = keys,
-                   role = "predictor") %>%
-  # score spi_27 (IRT scoring)
-  step_score_spi_27(spi_135_names, 
-                    keys = keys,
-                    IRT_path = here("../IRTinfoSPI27.rdata"),
-                    role = "predictor") %>%
-  # impute missing values in all spi variables
-  step_impute_pca(all_spi_names) %>% 
-  # residualize all spi vars (extract variance due to demographic vars)
-  step_residualize(all_spi_names, vtc = demographic_vars, id_var = "RID") %>%
-  # remove non-numeric vars before SMOTE
-  # see here for why you need to remove ID var as well: https://github.com/tidymodels/themis/issues/20
-  step_rm(has_role("id"), has_role("covariate")) %>% 
-  # need to center and scale all numeric predictors before SMOTE
-  step_normalize(all_predictors()) %>% 
-  # `step_smote()` generates new examples of the minority classes using nearest neighbors algorithm 
-  # Note: skip = TRUE because we don't want to apply SMOTE to the test data
-  step_smote(diabetes, skip = TRUE) 
+# # general recipe template
+# rec <- recipe(diabetes ~ ., data = data_train) %>% 
+#   update_role(RID, new_role = "id") %>%
+#   update_role(demographic_vars, new_role = "covariate") %>%
+#   # score spi_5 (mean scoring)
+#   step_score_spi_5(spi_135_names, 
+#                    keys = keys,
+#                    role = "predictor") %>%
+#   # score spi_27 (IRT scoring)
+#   step_score_spi_27(spi_135_names, 
+#                     keys = keys,
+#                     IRT_path = here("../IRTinfoSPI27.rdata"),
+#                     role = "predictor") %>%
+#   # impute missing values in all spi variables
+#   step_impute_pca(all_spi_names) %>% 
+#   # residualize all spi vars (extract variance due to demographic vars)
+#   step_residualize(all_spi_names, vtc = demographic_vars, id_var = "RID") %>%
+#   # remove non-numeric vars before SMOTE
+#   # see here for why you need to remove ID var as well: https://github.com/tidymodels/themis/issues/20
+#   step_rm(has_role("id"), has_role("covariate")) %>% 
+#   # need to center and scale all numeric predictors before SMOTE
+#   step_normalize(all_predictors()) %>% 
+#   # `step_smote()` generates new examples of the minority classes using nearest neighbors algorithm 
+#   # Note: skip = TRUE because we don't want to apply SMOTE to the test data
+#   step_smote(diabetes, skip = TRUE) 
 
 # recipe for spi_5
 rec_spi_5 <- recipe(diabetes ~ ., data = data_train) %>% 
@@ -179,19 +179,6 @@ multinom_reg_spec <- multinom_reg() %>%
   set_mode("classification") %>% 
   set_args(penalty = tune())
 
-# random forest
-
-cores <- parallel::detectCores()
-cores
-
-rf_spec <- 
-  rand_forest() %>% 
-  set_engine("ranger", 
-             num.threads = cores) %>% 
-  set_mode("classification") %>% 
-  set_args(mtry = tune(),
-           min_n = tune(),
-           trees = 1000)
 
 # Create workflow ---------------------------------------------------------
 
@@ -202,10 +189,6 @@ multinom_reg_spi_5_wflow <-
   add_recipe(rec_spi_5) %>% 
   add_model(multinom_reg_spec)
 
-rf_spi_5_wflow <- 
-  workflow() %>% 
-  add_recipe(rec_spi_5) %>% 
-  add_model(rf_spec)
 
 # multinom_reg_spi_27_wflow <- 
 #   workflow() %>% 
@@ -221,40 +204,47 @@ rf_spi_5_wflow <-
 
 # no cross-validation
 
-
-# cross-validation + no tuning
-fit_res_spi_5_notune <- fit_resamples(
-  multinom_reg_spi_5_wflow_notune,
-  resamples = cv_folds,
-  control = control_resamples(verbose = TRUE,
-                              save_pred = TRUE)
-)
-
-
 # multinom reg tuning grid
 multinom_grid <- grid_regular(penalty(), 
                               levels = 10)
-# rf tuning grid (note that mtry can't be larger than 5 for spi_5 because there are only 5 predictors)
-rf_grid <- grid_regular(mtry(range = c(1, 5)),
-                        min_n(),
-                        levels = 5)
 
-# cross-validation + tuning
+
+
+## WITHOUT PARALLELIZATION
+
 tune_res_multinom_reg_spi_5 <- tune_grid(
   multinom_reg_spi_5_wflow,
   resamples = cv_folds,
   grid = multinom_grid,
-  control = control_resamples(verbose = TRUE,
-                              save_pred = TRUE)
+  control = control_grid(verbose = TRUE,
+                         save_pred = TRUE)
 )
 
-tune_res_rf_spi_5 <- tune_grid(
-  rf_spi_5_wflow,
+## WITH PARALLELIZATION
+
+library(doParallel)
+library(tictoc)
+
+all_cores <- parallel::detectCores(logical = FALSE)
+#cl <- makePSOCKcluster(all_cores)
+cl <- makeForkCluster(all_cores)
+registerDoParallel(cl)
+# foreach::getDoParWorkers()
+# clusterEvalQ(cl, {library(janitor)})
+# clusterExport(cl, varlist = ls())
+
+# cross-validation + tuning
+
+tune_res_multinom_reg_spi_5 <- tune_grid(
+  multinom_reg_spi_5_wflow,
   resamples = cv_folds,
-  grid = rf_grid,
-  control = control_resamples(verbose = TRUE,
-                              save_pred = TRUE)
+  grid = multinom_grid,
+  control = control_grid(verbose = TRUE,
+                         save_pred = TRUE)
 )
+
+stopCluster(cl)
+
 
 # Finalize workflow -------------------------------------------------------
 
@@ -264,17 +254,10 @@ multinom_reg_spi_5_best <-
   tune_res_spi_5 %>% 
   select_best(metric = "roc_auc")
 
-rf_reg_spi_5_best <-
-  tune_res_rf_spi_5 %>% 
-  select_best(metric = "roc_auc")
 
 last_multinom_reg_spi_5_wflow <- 
   multinom_reg_spi_5_wflow %>%
   finalize_workflow(multinom_reg_spi_5_best)
-
-last_rf_spi_5_wflow <- 
-  rf_spi_5_wflow %>%
-  finalize_workflow(rf_reg_spi_5_best)
 
 # Predict on test set -----------------------------------------------------
 
@@ -285,33 +268,12 @@ final_multinom <-
   last_multinom_reg_spi_5_wflow %>% 
   fit(data = data_train)
 
-final_rf <- 
-  last_rf_spi_5_wflow %>% 
-  fit(data = data_train)
-
-# vip
-library(vip)
-
-final_multinom %>% 
-  pull_workflow_fit() %>% 
-  vip()
-
-final_rf %>% 
-  pull_workflow_fit() %>% 
-  vip()
 
 
 ## predict on test set 
 
 # multinom 
 last_fit(last_multinom_reg_spi_5_wflow ,
-         split = data_split) %>% 
-  collect_predictions() %>% 
-  roc_curve(diabetes, .pred_type1, .pred_type2, .pred_none) %>% 
-  autoplot()
-
-# rf
-last_fit(last_rf_spi_5_wflow ,
          split = data_split) %>% 
   collect_predictions() %>% 
   roc_curve(diabetes, .pred_type1, .pred_type2, .pred_none) %>% 

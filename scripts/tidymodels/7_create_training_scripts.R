@@ -84,6 +84,8 @@ create_script <- function(model_name,
   tune <- 
     glue("
   # hyperparamter tuning
+  
+  set.seed(123)
   tune_res <- tune_grid(
     wflow,
     resamples = cv_folds,

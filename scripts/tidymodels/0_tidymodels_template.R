@@ -209,39 +209,42 @@ multinom_grid <- grid_regular(penalty(),
                               levels = 10)
 
 
-
+library(tictoc)
 ## WITHOUT PARALLELIZATION
-
+set.seed(123)
+tic()
 tune_res_multinom_reg_spi_5 <- tune_grid(
   multinom_reg_spi_5_wflow,
   resamples = cv_folds,
   grid = multinom_grid,
+  metrics = metric_set(roc_auc, kap, accuracy, sens, spec, ppv, npv),
   control = control_grid(verbose = TRUE,
                          save_pred = TRUE)
 )
+toc()
 
 ## WITH PARALLELIZATION
 
 library(doParallel)
-library(tictoc)
 
-all_cores <- parallel::detectCores(logical = FALSE)
-#cl <- makePSOCKcluster(all_cores)
-cl <- makeForkCluster(all_cores)
-registerDoParallel(cl)
-# foreach::getDoParWorkers()
-# clusterEvalQ(cl, {library(janitor)})
-# clusterExport(cl, varlist = ls())
+num_cores <- parallel::detectCores(logical = FALSE)
+cl <- parallel::makeForkCluster(num_cores)
+doParallel::registerDoParallel(cl)
 
 # cross-validation + tuning
 
-tune_res_multinom_reg_spi_5 <- tune_grid(
+set.seed(123)
+tic()
+tune_res_multinom_reg_spi_5_parallel <- tune_grid(
   multinom_reg_spi_5_wflow,
   resamples = cv_folds,
   grid = multinom_grid,
+  metrics = metric_set(roc_auc, kap, accuracy, sens, spec, ppv, npv, mcc),
   control = control_grid(verbose = TRUE,
                          save_pred = TRUE)
 )
+toc()
+
 
 stopCluster(cl)
 

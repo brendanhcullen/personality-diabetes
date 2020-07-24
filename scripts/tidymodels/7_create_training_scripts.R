@@ -95,7 +95,7 @@ create_script <- function(model_name,
     wflow,
     resamples = cv_folds,
     grid = tuning_grid,
-    metrics = metric_set(kap, accuracy, roc_auc),
+    metrics = metric_set(roc_auc, kap, accuracy, sens, spec, ppv, npv),
     control = control_grid(verbose = TRUE,
                            save_pred = TRUE))
   

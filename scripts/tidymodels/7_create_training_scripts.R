@@ -85,6 +85,11 @@ create_script <- function(model_name,
     glue("
   # hyperparamter tuning
   
+  ## initialize parallelization
+  num_cores <- parallel::detectCores(logical = FALSE)
+  cl <- parallel::makeForkCluster(num_cores)
+  doParallel::registerDoParallel(cl)
+  
   set.seed(123)
   tune_res <- tune_grid(
     wflow,
@@ -93,6 +98,9 @@ create_script <- function(model_name,
     metrics = metric_set(kap, accuracy, roc_auc),
     control = control_resamples(verbose = TRUE,
                               save_pred = TRUE))
+  
+  ## stop parallelization                            
+  stopCluster(cl)
                               
          ")
   

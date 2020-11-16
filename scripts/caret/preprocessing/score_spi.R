@@ -46,7 +46,7 @@ score_spi_5 = function(data, keys){
       select(1:5)
     
   # score the Big 5 scales
-  scored = scoreItems(spi_5_keys, data_spi_135)
+  scored = scoreVeryFast(as.matrix(spi_5_keys), data_spi_135)
   spi_5_scores = as.data.frame(scored$scores)
   names(spi_5_scores) = spi_names$spi_5
     

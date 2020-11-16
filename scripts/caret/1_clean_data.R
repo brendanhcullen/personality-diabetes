@@ -13,7 +13,7 @@ library(caret)
 
 # Source pre-processing functions and import SPI keys ---------------------
 
-source(here("scripts/preprocessing/preprocess.R"))
+source(here("scripts/caret/preprocessing/preprocess.R"))
 
 # read in keys for SPI scoring
 keys = read.csv(here("data/superKey.csv"), header = TRUE, row.names = 1)

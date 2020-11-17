@@ -10,70 +10,70 @@ load(here('output', 'tidymodels', 'spi_names.Rdata'))
 # Multinomial logistic regression -----------------------------------------
 
 multinom_spi_5_grid <- grid_regular(penalty(),
-                                    levels = 5)
+                                    levels = 10)
 
 multinom_spi_27_grid <- grid_regular(penalty(),
-                                     levels = 5)
+                                     levels = 10)
 
 multinom_spi_135_grid <- grid_regular(penalty(),
-                                      levels = 5)
+                                      levels = 10)
 
 
 # K-nearest neighbors -----------------------------------------------------
 
 knn_spi_5_grid <- grid_regular(neighbors(),
                                weight_func(),
-                               levels = 5)
+                               levels = 10)
 
 knn_spi_27_grid <- grid_regular(neighbors(),
                                 weight_func(),
-                                levels = 5)
+                                levels = 10)
 
 knn_spi_135_grid <- grid_regular(neighbors(),
                                  weight_func(),
-                                 levels = 5)
+                                 levels = 10)
 
 
 # Neural network ----------------------------------------------------------
 
 nnet_spi_5_grid <- grid_regular(hidden_units(),
                                 penalty(),
-                                levels = 5)
+                                levels = 10)
 
 nnet_spi_27_grid <- grid_regular(hidden_units(),
                                  penalty(),
-                                 levels = 5)
+                                 levels = 10)
 
 nnet_spi_135_grid <- grid_regular(hidden_units(),
                                   penalty(),
-                                  levels = 5)
+                                  levels = 10)
 
 
 # Support vector machine --------------------------------------------------
 
 svm_spi_5_grid <- grid_regular(cost(),
                                rbf_sigma(),
-                               levels = 5)
+                               levels = 10)
 
 svm_spi_27_grid <- grid_regular(cost(),
                                 rbf_sigma(),
-                                levels = 5)
+                                levels = 10)
 
 svm_spi_135_grid <- grid_regular(cost(),
                                  rbf_sigma(),
-                                 levels = 5)
+                                 levels = 10)
 
 
 # Linear discriminant analysis --------------------------------------------
 
 lda_spi_5_grid <- grid_regular(penalty(),
-                               levels = 5)
+                               levels = 10)
 
 lda_spi_27_grid <- grid_regular(penalty(),
-                               levels = 5)
+                               levels = 10)
 
 lda_spi_135_grid <- grid_regular(penalty(),
-                               levels = 5)
+                               levels = 10)
 
 
 # Decision tree -----------------------------------------------------------
@@ -81,32 +81,32 @@ lda_spi_135_grid <- grid_regular(penalty(),
 tree_spi_5_grid <- grid_regular(cost_complexity(), 
                                 tree_depth(),
                                 min_n(),
-                                levels = 5)
+                                levels = 10)
 
 tree_spi_27_grid <- grid_regular(cost_complexity(), 
                                 tree_depth(),
                                 min_n(),
-                                levels = 5)
+                                levels = 10)
 
 tree_spi_135_grid <- grid_regular(cost_complexity(), 
                                 tree_depth(),
                                 min_n(),
-                                levels = 5)
+                                levels = 10)
 
 # Random forest -----------------------------------------------------------
 # NOTE: mtry() is dependent on number of predictors
 
 rf_spi_5_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_5_names))),
                               min_n(),
-                              levels = 5)
+                              levels = 10)
 
 rf_spi_27_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_27_names))),
                                min_n(),
-                               levels = 5)
+                               levels = 10)
 
 rf_spi_135_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_135_names))),
                                 min_n(),
-                                levels = 5)
+                                levels = 10)
 
 
 # Save tuning grids -------------------------------------------------------

@@ -1,10 +1,10 @@
 
 library(here)
 
-source(here("scripts/caret/preprocessing/get_spi_names.R"))
-source(here("scripts/caret/preprocessing/score_spi.R"))
-source(here("scripts/caret/preprocessing/impute.R"))
-source(here("scripts/caret/preprocessing/residualize.R"))
+source(here("scripts/tidymodels/preprocessing/get_spi_names.R"))
+source(here("scripts/tidymodels/preprocessing/score_spi.R"))
+source(here("scripts/tidymodels/preprocessing/impute.R"))
+source(here("scripts/tidymodels/preprocessing/residualize.R"))
 
 preprocess_sapa = function(data, keys = keys, id ="RID", VOI = all_spi_names, covariates, IRT_path = here("data/IRTinfoSPI27.rdata"), order){
 

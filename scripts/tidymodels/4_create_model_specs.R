@@ -25,8 +25,7 @@ knn_spec <-
   set_engine("kknn") %>%
   set_mode("classification") %>% 
   set_args(neighbors = tune(), 
-           weight_func = tune(),
-           dist_power = tune())
+           weight_func = tune())
 
 # neural network
 # https://parsnip.tidymodels.org/reference/mlp.html

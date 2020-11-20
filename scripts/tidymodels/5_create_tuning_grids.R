@@ -93,10 +93,10 @@ tree_spi_135_grid <- grid_regular(cost_complexity(),
 rf_spi_5_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_5_names))),
                               levels = 5)
 
-rf_spi_27_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_27_names))),,
+rf_spi_27_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_27_names))),
                                levels = 5)
 
-rf_spi_135_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_135_names))),,
+rf_spi_135_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_135_names))),
                                 levels = 5)
 
 

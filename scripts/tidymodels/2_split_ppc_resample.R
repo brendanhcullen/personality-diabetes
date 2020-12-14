@@ -62,7 +62,7 @@ data_test_ppc <- preprocess_sapa(data = data_test,
 # 10-fold cross-validation
 set.seed(123)
 cv_folds <- vfold_cv(data_train_ppc, 
-                     v = 5, # number of folds
+                     v = 10, # number of folds
                      strata = diabetes) # maintain diabetes proportions within each fold
 
 # Save data ---------------------------------------------------------------

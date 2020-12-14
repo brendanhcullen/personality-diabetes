@@ -72,7 +72,8 @@ rf_spec <-
   set_engine("ranger") %>% 
   set_mode("classification") %>% 
   set_args(mtry = tune(),
-           trees = 500)
+           min_n = tune(),
+           trees = 1000)
 
 
 # Save model specs --------------------------------------------------------

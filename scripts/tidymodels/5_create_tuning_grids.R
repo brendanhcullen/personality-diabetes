@@ -91,12 +91,15 @@ tree_spi_135_grid <- grid_regular(cost_complexity(),
 # NOTE: mtry() is dependent on number of predictors
 
 rf_spi_5_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_5_names))),
+                              min_n(),
                               levels = 5)
 
 rf_spi_27_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_27_names))),
+                               min_n(),
                                levels = 5)
 
 rf_spi_135_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_135_names))),
+                                min_n(),
                                 levels = 5)
 
 

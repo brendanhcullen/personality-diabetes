@@ -69,7 +69,7 @@ tree_spec <-
 # https://parsnip.tidymodels.org/reference/rand_forest.html
 rf_spec <- 
   rand_forest() %>% 
-  set_engine("randomForest") %>% 
+  set_engine("ranger") %>% 
   set_mode("classification") %>% 
   set_args(mtry = tune(),
            min_n = tune(),

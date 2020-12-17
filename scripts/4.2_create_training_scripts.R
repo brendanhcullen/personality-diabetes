@@ -4,8 +4,8 @@ library(tidyverse)
 library(glue)
 
 # load in relevant informatiom
-train_master_df = readRDS(here("/output/machine_learning/training/train_master_df.RDS"))
-train_control = readRDS(here("/output/machine_learning/training/train_control.RDS"))
+train_master_df = readRDS(here("output/machine_learning/training/train_master_df.RDS"))
+train_control = readRDS(here("output/machine_learning/training/train_control.RDS"))
 
 # function to add additional arguments (wherever needed) when specifying the options for model training
 insert_add_args = function(add_args) {

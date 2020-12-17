@@ -67,8 +67,8 @@ else if (ml_model == "rpart") {
 script_chunk_3 = "
 
 # load in relevant info for model training
-train_master_df = readRDS(here('/output/machine_learning/training/train_master_df.RDS'))
-train_control = readRDS(here('/output/machine_learning/training/train_control.RDS'))
+train_master_df = readRDS(here('output/machine_learning/training/train_master_df.RDS'))
+train_control = readRDS(here('output/machine_learning/training/train_control.RDS'))
 
 # select training data 
 train_data = train_master_df %>% 

@@ -197,7 +197,14 @@ best_model$bestTune
 
 # Variable importance -----------------------------------------------------
 
-
+var_imps <- tibble(var_imp = map(model_fits, varImp)) %>% 
+  mutate(model = names(model_fits)) %>% 
+  filter(str_detect(model, "rf")) %>% 
+  mutate(n_to_plot = case_when(str_detect(model, "spi_5") ~ 5, 
+                               str_detect(model, "spi_27") ~ 27,
+                               str_detect(model, "spi_135") ~ 30)) %>% 
+  mutate(plot = map2(var_imp, n_to_plot, ~plot(.x, .y)),
+         file = paste0(here("output/machine_learning/training/figs/var_imp"),model, "_var_imp.png"))
 
 # Save best model ---------------------------------------------------------
 

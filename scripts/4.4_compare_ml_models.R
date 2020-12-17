@@ -86,7 +86,7 @@ ggsave(file = here::here("output/machine_learning/training/figs/kappa_racing_lan
 # ROC AUC -----------------------------------------------------------------
 
 # calculate multiclass auc values
-pred.v.actual <- data.frame(model = names(model_fits), stringsAsFactors = FALSE) %>% 
+roc_auc <- data.frame(model = names(model_fits), stringsAsFactors = FALSE) %>% 
   mutate(output = model_fits) %>% 
   separate(model, c("model_name", "spi_scoring"), sep = "_", extra = "merge") %>% 
   filter(!grepl("svm", model_name)) %>%
@@ -96,7 +96,7 @@ pred.v.actual <- data.frame(model = names(model_fits), stringsAsFactors = FALSE)
   mutate(multiclass_roc = map2(actual, predicted, multiclass.roc))
 
 #racing lanes
-auc_racing_lanes_plot <- pred.v.actual %>%
+auc_racing_lanes_plot <- roc_auc %>%
   select(model_name, spi_scoring, multiclass_roc) %>%
   mutate(auc = map_dbl(multiclass_roc, "auc")) %>% 
   ggplot(aes(x = 0, y = auc, color = spi_scoring)) +
@@ -108,6 +108,23 @@ auc_racing_lanes_plot <- pred.v.actual %>%
   theme(legend.title=element_blank())
 
 ggsave(file = here::here("output/machine_learning/training/figs/auc_racing_lanes_plot.png"), plot = auc_racing_lanes_plot)
+
+
+# ROC curves --------------------------------------------------------------
+
+
+
+# Variable importance -----------------------------------------------------
+
+var_imps <- tibble(var_imp = map(model_fits, varImp)) %>% 
+  mutate(model = names(model_fits)) %>% 
+  filter(str_detect(model, "rf")) %>% 
+  mutate(n_to_plot = case_when(str_detect(model, "spi_5") ~ 5, 
+                               str_detect(model, "spi_27") ~ 27,
+                               str_detect(model, "spi_135") ~ 30)) %>% 
+  mutate(plot = map2(var_imp, n_to_plot, ~plot(.x, .y)),
+         file = paste0(here("output/machine_learning/training/figs/var_imp"),model, "_var_imp.png"))
+
 
 # Identify best models -----------------------------------------------------
 
@@ -133,18 +150,6 @@ best_model = model_fits[[best_model_name]]
 cat("The best model is", best_model_name, "with tuning parameter(s) of")
 best_model$bestTune
 
-
-
-# Variable importance -----------------------------------------------------
-
-var_imps <- tibble(var_imp = map(model_fits, varImp)) %>% 
-  mutate(model = names(model_fits)) %>% 
-  filter(str_detect(model, "rf")) %>% 
-  mutate(n_to_plot = case_when(str_detect(model, "spi_5") ~ 5, 
-                               str_detect(model, "spi_27") ~ 27,
-                               str_detect(model, "spi_135") ~ 30)) %>% 
-  mutate(plot = map2(var_imp, n_to_plot, ~plot(.x, .y)),
-         file = paste0(here("output/machine_learning/training/figs/var_imp"),model, "_var_imp.png"))
 
 # Save best model ---------------------------------------------------------
 

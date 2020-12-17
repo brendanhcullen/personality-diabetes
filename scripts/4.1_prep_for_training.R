@@ -24,7 +24,7 @@ train_data_split = list(train_spi_5 = train_data_pp %>% select(diabetes, spi_nam
 # Specify resampling parameters -------------------------------------------
 
 # 10-fold repeated cross-validation with SMOTE subsampling
-train_control = trainControl(method = "repeatedcv",
+train_control = trainControl(method = "cv",
                              number = 10, # number of folds = 10
                              # repeats = 10, # cross-validation is repeated 10 times
                              sampling = "smote", # use for resolving class imbalances

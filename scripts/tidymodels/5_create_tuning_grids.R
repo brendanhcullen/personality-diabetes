@@ -51,16 +51,13 @@ nnet_spi_135_grid <- grid_regular(hidden_units(),
 
 # Support vector machine --------------------------------------------------
 
-svm_spi_5_grid <- grid_regular(cost(),
-                               rbf_sigma(),
+svm_spi_5_grid <- grid_regular(rbf_sigma(),
                                levels = 5)
 
-svm_spi_27_grid <- grid_regular(cost(),
-                                rbf_sigma(),
+svm_spi_27_grid <- grid_regular(rbf_sigma(),
                                 levels = 5)
 
-svm_spi_135_grid <- grid_regular(cost(),
-                                 rbf_sigma(),
+svm_spi_135_grid <- grid_regular(rbf_sigma(),
                                  levels = 5)
 
 
@@ -80,17 +77,14 @@ lda_spi_135_grid <- grid_regular(penalty(),
 
 tree_spi_5_grid <- grid_regular(cost_complexity(), 
                                 tree_depth(),
-                                min_n(),
                                 levels = 5)
 
 tree_spi_27_grid <- grid_regular(cost_complexity(), 
                                 tree_depth(),
-                                min_n(),
                                 levels = 5)
 
 tree_spi_135_grid <- grid_regular(cost_complexity(), 
                                 tree_depth(),
-                                min_n(),
                                 levels = 5)
 
 # Random forest -----------------------------------------------------------

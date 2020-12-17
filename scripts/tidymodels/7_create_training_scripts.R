@@ -36,16 +36,12 @@ create_script <- function(model_name,
     library(themis)
     
     # load required info
-    data_train <- readRDS(here('output', 'tidymodels', 'data_train.RDS'))
+    data_train_ppc <- readRDS(here('output', 'tidymodels', 'data_train_ppc.RDS'))
     cv_folds <- readRDS(here('output', 'tidymodels', 'cv_folds.RDS'))
     train_master_df <- readRDS(here('output', 'tidymodels', 'train_master_df.RDS'))
     keys <- readRDS(here('output', 'tidymodels', 'keys.RDS'))
     demographic_vars <- readRDS(here('output', 'tidymodels', 'demographic_vars.RDS'))
     load(here('output', 'tidymodels', 'spi_names.Rdata'))
-    
-    # source scripts containing custom recipe steps
-    custom_recipe_scripts <- list.files(here('scripts', 'tidymodels', 'custom_rec_steps'), pattern = 'step_*', full.names = TRUE)
-    walk(custom_recipe_scripts, source)
     
         ")
 
@@ -96,7 +92,7 @@ create_script <- function(model_name,
     wflow,
     resamples = cv_folds,
     grid = tuning_grid,
-    metrics = metric_set(roc_auc, kap, accuracy, sens, spec, ppv, npv, mcc),
+    metrics = metric_set(roc_auc, kap, accuracy, sens, spec),
     control = control_grid(verbose = TRUE,
                            save_pred = TRUE))
   

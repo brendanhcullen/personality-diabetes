@@ -11,14 +11,9 @@ library(janitor)
 
 # Set-up ----------------------------------------------------------
 
-# source scripts containing custom recipe steps
-custom_recipe_scripts <- list.files(here("scripts", "tidymodels", "custom_rec_steps"), pattern = "step_*", full.names = TRUE)
-walk(custom_recipe_scripts, source)
-
 # load required info
-data_train <- readRDS(here("output", "tidymodels", "data_train.RDS"))
+data_train_ppc <- readRDS(here("output", "tidymodels", "data_train_ppc.RDS"))
 keys <- readRDS(here("output", "tidymodels", "keys.RDS"))
-demographic_vars <- readRDS(here("output", "tidymodels", "demographic_vars.RDS"))
 load(here("output", "tidymodels", "spi_names.Rdata"))
 
 # General notes:
@@ -35,47 +30,27 @@ load(here("output", "tidymodels", "spi_names.Rdata"))
 # Create recipes ----------------------------------------------------------
 
 # recipe for spi_5
-rec_spi_5 <- recipe(diabetes ~ ., data = data_train) %>% 
-  update_role(RID, new_role = "id") %>%
-  update_role(demographic_vars, new_role = "covariate") %>%
-  step_score_spi_5(spi_135_names, 
-                   keys = keys,
-                   role = "predictor") %>%
-  step_residualize(spi_5_names, vtc = demographic_vars, id_var = "RID") %>%
-  step_rm(has_role("id"), has_role("covariate")) %>% 
-  step_rm(spi_135_names) %>% 
+rec_spi_5 <- recipe(diabetes ~ ., data = data_train_ppc) %>% 
+  step_rm(-has_role("outcome"), -spi_5_names) %>% 
   step_normalize(all_predictors()) %>% 
   step_smote(diabetes, skip = TRUE) 
 
 # recipe for spi_27
-rec_spi_27 <- recipe(diabetes ~ ., data = data_train) %>% 
-  update_role(RID, new_role = "id") %>%
-  update_role(demographic_vars, new_role = "covariate") %>%
-  step_score_spi_27(spi_135_names, 
-                    keys = keys,
-                    IRT_path = here("../IRTinfoSPI27.rdata"),
-                    role = "predictor") %>%
-  step_impute_pca(spi_27_names) %>% 
-  step_residualize(spi_27_names, vtc = demographic_vars, id_var = "RID") %>%
-  step_rm(has_role("id"), has_role("covariate")) %>% 
-  step_rm(spi_135_names) %>% 
+rec_spi_27 <- recipe(diabetes ~ ., data = data_train_ppc) %>% 
+  step_rm(-has_role("outcome"), -spi_27_names) %>% 
   step_normalize(all_predictors()) %>% 
   step_smote(diabetes, skip = TRUE) 
 
 # recipe for spi_135
-rec_spi_135 <- recipe(diabetes ~ ., data = data_train) %>% 
-  update_role(RID, new_role = "id") %>%
-  update_role(demographic_vars, new_role = "covariate") %>%
-  step_impute_pca(spi_135_names) %>% 
-  step_residualize(spi_135_names, vtc = demographic_vars, id_var = "RID") %>%
-  step_rm(has_role("id"), has_role("covariate")) %>% 
+rec_spi_135 <- recipe(diabetes ~ ., data = data_train_ppc) %>% 
+  step_rm(-has_role("outcome"), -spi_135_names) %>%  
   step_normalize(all_predictors()) %>% 
   step_smote(diabetes, skip = TRUE) 
 
 # Test out recipe(s) ------------------------------------------------------
 
 # # prep
-# prepped <- prep(rec_spi_5)
+#prepped <- prep(rec_spi_5)
 # 
 # # juice
 # juiced <- juice(prepped)

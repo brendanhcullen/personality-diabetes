@@ -25,8 +25,7 @@ knn_spec <-
   set_engine("kknn") %>%
   set_mode("classification") %>% 
   set_args(neighbors = tune(), 
-           weight_func = tune(),
-           dist_power = tune())
+           weight_func = tune())
 
 # neural network
 # https://parsnip.tidymodels.org/reference/mlp.html
@@ -44,8 +43,7 @@ svm_spec <-
   svm_rbf() %>% 
   set_engine("kernlab") %>% 
   set_mode("classification") %>% 
-  set_args(cost = tune(),
-           rbf_sigma= tune())
+  set_args(rbf_sigma= tune())
 
 # linear discriminant analysis
 # https://discrim.tidymodels.org/reference/discrim_linear.html
@@ -65,10 +63,10 @@ tree_spec <-
   set_engine("rpart") %>%
   set_mode("classification") %>% 
   set_args(cost_complexity = tune(),
-           tree_depth = tune(),
-           min_n = tune())
+           tree_depth = tune())
 
 # random forest
+# https://parsnip.tidymodels.org/reference/rand_forest.html
 rf_spec <- 
   rand_forest() %>% 
   set_engine("ranger") %>% 

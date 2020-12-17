@@ -34,26 +34,6 @@ dotplot(resamps, metric = "Kappa")
 width = .5
 library(RColorBrewer)
 
-accuracy_lollipop_plot <- resamps$values %>% 
-  gather("key", "value") %>%
-  separate(key, into = c("key", "metric"), sep = "~") %>%
-  mutate(key = as.factor(gsub("spi_", "", key))) %>%
-  separate(key, into = c("key", "num"), sep = "_") %>%
-  filter(metric == "Accuracy") %>% 
-  group_by(key, num) %>%
-  summarise(accuracy = mean(as.numeric(value)), na.rm=T) %>%
-  ungroup() %>% 
-  arrange(desc(accuracy)) %>% 
-  ggplot(aes(x = key, y = accuracy, color = num)) +
-  geom_point(size = 3, position = position_dodge(width = width)) +
-  geom_segment(aes(xend = key, yend = 0), position = position_dodge(width = width)) +
-  #facet_wrap(~num) +
-  scale_color_manual( values= brewer.pal(3, name = "Dark2")) +
-  theme_minimal() +
-  coord_flip()
-
-ggsave(file = here::here("output/machine_learning/training/figs/accuracy_lollipop_plot.png"), plot = accuracy_lollipop_plot)
-
 # racing lanes
 accuracy_racing_lanes_plot <- resamps$values %>% 
   gather("key", "value") %>%
@@ -76,31 +56,6 @@ ggsave(file = here::here("output/machine_learning/training/figs/accuracy_racing_
 
 
 # Kappa -------------------------------------------------------------------
-
-kappa_lollipop_plot <- resamps$values %>% 
-  gather("key", "value") %>%
-  filter(key != "Resample") %>%
-  mutate(key = gsub("rpart2", "rparttwo", key)) %>%
-  #separate(key, into = c("key", "metric"), sep = "\\~") %>%
-  mutate(metric = ifelse(grepl("Accuracy", key), "Accuracy", "Kappa"),
-         num = parse_number(key),
-         key = gsub("_.*", "", key)) %>%
-  filter(!is.nan(value)) %>%
-  #separate(key, into = c("key", "num"), sep = "_") %>%
-  filter(metric == "Kappa") %>%
-  group_by(key, num) %>%
-  summarise(kappa = mean(as.numeric(value)), na.rm=T) %>%
-  ungroup() %>% 
-  arrange(desc(kappa)) %>% 
-  ggplot(aes(x = key, y = kappa, color = as.factor(num))) +
-  geom_point(size = 3, position = position_dodge(width = width)) +
-  geom_segment(aes(xend = key, yend = 0), position = position_dodge(width = width)) +
-  #facet_wrap(~num) +
-  scale_color_manual( values= brewer.pal(3, name = "Dark2")) +
-  theme_minimal() +
-  coord_flip()
-
-ggsave(file = here::here("output/machine_learning/training/figs/kappa_lollipop_plot.png"), plot = kappa_lollipop_plot)
 
 #racing lanes
 
@@ -139,21 +94,6 @@ pred.v.actual <- data.frame(model = names(model_fits), stringsAsFactors = FALSE)
   mutate(actual = map(output, "trainingData")) %>%
   mutate(actual = map(actual, function(x) x[,".outcome"])) %>% 
   mutate(multiclass_roc = map2(actual, predicted, multiclass.roc))
-
-
-#lollipops
-auc_lollipop_plot <- pred.v.actual %>%
-  select(model_name, spi_scoring, multiclass_roc) %>%
-  mutate(auc = map_dbl(multiclass_roc, "auc")) %>%
-  ggplot(aes(x = reorder(model_name, auc), y = auc, color = spi_scoring)) +
-  geom_point(size = 3, position = position_dodge(width = width)) +
-  geom_segment(aes(xend = model_name, yend = 0), position = position_dodge(width = width)) +
-  #facet_wrap(~spi_scoring) +
-  scale_color_manual( values= brewer.pal(3, name = "Dark2")) +
-  theme_minimal() +
-  coord_flip()
-
-ggsave(file = here::here("output/machine_learning/training/figs/auc_lollipop_plot.png"), plot = auc_lollipop_plot)
 
 #racing lanes
 auc_racing_lanes_plot <- pred.v.actual %>%

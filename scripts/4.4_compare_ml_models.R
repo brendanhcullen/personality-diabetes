@@ -162,7 +162,7 @@ auc_racing_lanes_plot <- pred.v.actual %>%
   ggplot(aes(x = 0, y = auc, color = spi_scoring)) +
   geom_point(size = 3) +
   facet_grid(model_name ~ ., scales = "free_x") +
-  scale_color_manual( values= brewer.pal(3, name = "Dark2")) +
+  scale_color_viridis_d(end = 0.9) +
   scale_x_continuous("", breaks = NULL) +
   coord_flip() +
   theme(legend.title=element_blank())

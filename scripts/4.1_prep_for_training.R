@@ -31,14 +31,6 @@ train_control = trainControl(method = "repeatedcv",
                              classProbs = TRUE,
                              savePredictions = TRUE) 
 
-# 10-fold repeated cross-validation with NO subsampling
-train_control_nosub = trainControl(method = "repeatedcv",
-                             number = 10, # number of folds = 10
-                             repeats = 10, # cross-validation is repeated 10 times
-                             classProbs = TRUE) 
-
-
-
 # Specify tuning grids ----------------------------------------------------
 # Keeping this code for reference, but we are going to use default tuning grids instead. 
 
@@ -101,5 +93,4 @@ train_master_df = train_master_df %>%
 
 saveRDS(train_master_df, file = here("output/machine_learning/training/train_master_df.RDS"))
 saveRDS(train_control, file = here("output/machine_learning/training/train_control.RDS"))
-saveRDS(train_control_nosub, file = here("output/machine_learning/training/train_control_nosub.RDS"))
 

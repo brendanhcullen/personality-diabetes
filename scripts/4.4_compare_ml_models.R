@@ -73,7 +73,7 @@ kappa_racing_lanes_plot <- resamps$values %>%
   group_by(key, num) %>%
   summarise(kappa = mean(as.numeric(value)), na.rm=T) %>% 
   mutate(num = as.factor(num)) %>% 
-ggplot(aes(x = 0, y = kappa, color = num)) +
+  ggplot(aes(x = 0, y = kappa, color = num)) +
   geom_point(size = 3) +
   facet_grid(key ~ ., scales = "free_x") +
   scale_color_manual( values= brewer.pal(3, name = "Dark2")) +
@@ -86,19 +86,21 @@ ggsave(file = here::here("output/machine_learning/training/figs/kappa_racing_lan
 # ROC AUC -----------------------------------------------------------------
 
 # calculate multiclass auc values
-roc_auc <- data.frame(model = names(model_fits), stringsAsFactors = FALSE) %>% 
+roc_auc <- 
+  tibble(model = names(model_fits)) %>% 
   mutate(output = model_fits) %>% 
   separate(model, c("model_name", "spi_scoring"), sep = "_", extra = "merge") %>% 
   filter(!grepl("svm", model_name)) %>%
-  mutate(predicted = map(output, predict, type = "prob")) %>% 
-  mutate(actual = map(output, "trainingData")) %>%
-  mutate(actual = map(actual, function(x) x[,".outcome"])) %>% 
-  mutate(multiclass_roc = map2(actual, predicted, multiclass.roc))
+  mutate(predicted = map(output, predict, type = "prob"),
+         actual = map(output, "trainingData"),
+         actual = map(actual, function(x) x[,".outcome"]),
+         multiclass_roc = map2(actual, predicted, multiclass.roc),
+         auc = map_dbl(multiclass_roc, "auc"))
 
 #racing lanes
-auc_racing_lanes_plot <- roc_auc %>%
-  select(model_name, spi_scoring, multiclass_roc) %>%
-  mutate(auc = map_dbl(multiclass_roc, "auc")) %>% 
+auc_racing_lanes_plot <- 
+  roc_auc %>%
+  select(model_name, spi_scoring, auc) %>% 
   ggplot(aes(x = 0, y = auc, color = spi_scoring)) +
   geom_point(size = 3) +
   facet_grid(model_name ~ ., scales = "free_x") +
@@ -112,7 +114,24 @@ ggsave(file = here::here("output/machine_learning/training/figs/auc_racing_lanes
 
 # ROC curves --------------------------------------------------------------
 
+library(tidymodels)
 
+# plot roc curves using yardstick::roc_curve()
+roc_curves <- 
+  tibble(model_name = names(model_fits), 
+         model_fit = model_fits,
+         preds = modify_depth(model_fit, 1, "pred")) %>% 
+  rowwise() %>% 
+  mutate(plot = list(preds %>% 
+                       roc_curve(truth = obs, none, type1, type2) %>% 
+                       autoplot() + 
+                       ggtitle(model_name)),
+         filename = paste0(str_replace(model_name, "_fit", ""), ".png")) 
+
+# save roc curve plots 
+roc_curves %>% 
+  select(filename, plot) %>% 
+  pwalk(ggsave, path = here("output/machine_learning/training/figs/roc_curves"))
 
 # Variable importance -----------------------------------------------------
 
@@ -123,36 +142,26 @@ var_imps <- tibble(var_imp = map(model_fits, varImp)) %>%
                                str_detect(model, "spi_27") ~ 27,
                                str_detect(model, "spi_135") ~ 30)) %>% 
   mutate(plot = map2(var_imp, n_to_plot, ~plot(.x, .y)),
-         file = paste0(here("output/machine_learning/training/figs/var_imp"),model, "_var_imp.png"))
-
+         file = paste0(here("output/machine_learning/training/figs/var_imp"), model, "_var_imp.png"))
 
 # Identify best models -----------------------------------------------------
 
-kappas = data.frame(model = names(model_fits), stringsAsFactors = FALSE) %>% 
-  mutate(output = model_fits) %>% 
-  separate(model, c("model_name", "spi_scoring"), sep = "_", extra = "merge") %>% 
-  mutate(results = map(output, "results")) %>%
-  mutate(kappa = map(results, "Kappa")) %>%
-  mutate(kappa = map_dbl(kappa, max, na.rm = TRUE)) %>%
-  dplyr::select(-output, -results)
+find_best_model <- function(metrics_df, spi) {
+  metrics_df %>% 
+    filter(spi_scoring == spi) %>% 
+    arrange(desc(auc)) %>% 
+    slice(1) %>% 
+    unite(full_model_name, model_name, spi_scoring) %>% 
+    pull(full_model_name)
+}
 
-best_model_name = kappas %>% 
-  arrange(desc(kappa)) %>% 
-  slice(1) %>% 
-  unite(full_model_name, model_name, spi_scoring) %>% 
-  select(full_model_name) %>% 
-  map_chr(1) %>% 
-  unname()
+best_mods <- map_chr(c("spi_5", "spi_27", "spi_135"), ~find_best_model(roc_auc, .x))
 
-best_model = model_fits[[best_model_name]]
+best_mods_fits <- model_fits[names(model_fits) %in% best_mods]
 
 
-cat("The best model is", best_model_name, "with tuning parameter(s) of")
-best_model$bestTune
+# Save best models ---------------------------------------------------------
 
-
-# Save best model ---------------------------------------------------------
-
-saveRDS(best_model, file = here("output/machine_learning/training/best_model.RDS"))
+saveRDS(best_mods_fits, file = here("output/machine_learning/training/best_mods_fits.RDS"))
 
 

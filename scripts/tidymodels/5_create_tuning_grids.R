@@ -51,26 +51,26 @@ nnet_spi_135_grid <- grid_regular(hidden_units(),
 
 # Support vector machine --------------------------------------------------
 
-svm_spi_5_grid <- grid_regular(rbf_sigma(),
-                               levels = 5)
-
-svm_spi_27_grid <- grid_regular(rbf_sigma(),
-                                levels = 5)
-
-svm_spi_135_grid <- grid_regular(rbf_sigma(),
-                                 levels = 5)
+# svm_spi_5_grid <- grid_regular(rbf_sigma(),
+#                                levels = 5)
+# 
+# svm_spi_27_grid <- grid_regular(rbf_sigma(),
+#                                 levels = 5)
+# 
+# svm_spi_135_grid <- grid_regular(rbf_sigma(),
+#                                  levels = 5)
 
 
 # Linear discriminant analysis --------------------------------------------
 
-lda_spi_5_grid <- grid_regular(penalty(),
-                               levels = 5)
-
-lda_spi_27_grid <- grid_regular(penalty(),
-                               levels = 5)
-
-lda_spi_135_grid <- grid_regular(penalty(),
-                               levels = 5)
+# lda_spi_5_grid <- grid_regular(penalty(),
+#                                levels = 5)
+# 
+# lda_spi_27_grid <- grid_regular(penalty(),
+#                                levels = 5)
+# 
+# lda_spi_135_grid <- grid_regular(penalty(),
+#                                levels = 5)
 
 
 # Decision tree -----------------------------------------------------------

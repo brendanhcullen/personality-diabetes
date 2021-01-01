@@ -38,22 +38,21 @@ nnet_spec <-
 
 # support vector machine (radial basis)
 # https://parsnip.tidymodels.org/reference/svm_rbf.html
-# svm_spec <- 
-#   svm_rbf() %>% 
-#   set_engine("kernlab") %>% 
-#   set_mode("classification") %>% 
-#   set_args(rbf_sigma= tune())
+svm_spec <-
+  svm_rbf() %>%
+  set_engine("kernlab") %>%
+  set_mode("classification") %>%
+  set_args(rbf_sigma= tune())
 
 # linear discriminant analysis
 # https://discrim.tidymodels.org/reference/discrim_linear.html
-# NOTE: need to specify discrim_linear() comes from {discrim}, 
-# otherwise the function won't be found
+# NOTE: need to have parsnip v 1.4 or greater
 
-# lda_spec <- 
-#   discrim::discrim_linear() %>% 
-#   set_engine("mda") %>% 
-#   set_mode("classification") %>% 
-#   set_args(penalty = tune())
+lda_spec <-
+  discrim::discrim_linear() %>%
+  set_engine("mda") %>%
+  set_mode("classification") %>%
+  set_args(penalty = tune())
 
 # decision tree
 # https://parsnip.tidymodels.org/reference/decision_tree.html
@@ -84,8 +83,8 @@ if(!dir.exists(output_dir)){dir.create(output_dir, recursive = TRUE)}
 model_specs <- list(multinom_spec = multinom_spec,
                     knn_spec = knn_spec,
                     nnet_spec = nnet_spec, 
-                    #svm_spec = svm_spec,
-                    #lda_spec = lda_spec,
+                    svm_spec = svm_spec,
+                    lda_spec = lda_spec,
                     tree_spec = tree_spec,
                     rf_spec = rf_spec)
 

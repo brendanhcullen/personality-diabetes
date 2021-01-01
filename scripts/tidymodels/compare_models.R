@@ -3,7 +3,7 @@ library(tidyverse)
 library(tidymodels)
 
 # list all model fits
-model_fits_dir <- "~/Desktop/sapa_diabetes_fits/nov_2020/model_fits/"
+model_fits_dir <- here("output", "tidymodels", "model_fits")
 
 model_fits <- list.files(path = model_fits_dir, pattern = "*.RDS", full.names = TRUE)
 
@@ -14,6 +14,10 @@ model_fits_names <-  list.files(model_fits_dir, pattern = ".RDS") %>%
 model_fits <- model_fits %>% 
   map(readRDS) %>% 
   set_names(model_fits_names)
+
+# create dir for figs
+figs_output_dir <- here("output", "tidymodels", "figs", "roc_curves")
+if(!dir.exists(figs_output_dir)){dir.create(figs_output_dir, recursive = TRUE)}
 
 ## racing lanes plot
 
@@ -32,7 +36,7 @@ roc_auc_plot <- roc_auc %>%
   coord_flip() + 
   theme(legend.title=element_blank())
 
-ggsave("roc_auc_racing_lanes.png", path = "~/Desktop/sapa_diabetes_fits/nov_2020")
+ggsave("roc_auc_racing_lanes.png", path = here("output", "tidymodels", "figs"))
 
 # tibble of fits 
 
@@ -52,4 +56,4 @@ fits <- fits %>%
 # save roc curve plots 
 fits %>% 
   select(filename, plot) %>% 
-  pwalk(ggsave, path = "~/Desktop/sapa_diabetes_fits/nov_2020/roc_curves")
+  pwalk(ggsave, path = here("output", "tidymodels", "figs", "roc_curves"))

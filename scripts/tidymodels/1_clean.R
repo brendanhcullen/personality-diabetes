@@ -77,7 +77,7 @@ data_clean <- data %>%
 
 # create output directory if it doesn't already exist
 output_dir <- here("output", "tidymodels")
-if(!dir.exists(output_dir)){dir.create(output_dir)}
+if(!dir.exists(output_dir)){dir.create(output_dir, recursive = TRUE)}
 
 save(list = c("spi_5_names", "spi_27_names", "spi_135_names", "all_spi_names"), file = here("output", "tidymodels", "spi_names.Rdata"))
 saveRDS(demographic_vars, file = here("output", "tidymodels", "demographic_vars.RDS"))

@@ -40,4 +40,7 @@ names(train_master_df$workflow) <-
            ~paste(.x, .y, "wflow", sep = "_"))
 
 # Save data ---------------------------------------------------------------
+output_dir <- here("output", "tidymodels")
+if(!dir.exists(output_dir)){dir.create(output_dir, recursive = TRUE)}
+
 saveRDS(train_master_df, file = here("output", "tidymodels", "train_master_df.RDS"))

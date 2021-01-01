@@ -21,8 +21,8 @@ create_script <- function(model_name,
                           fit_output_dir = here::here("output", "tidymodels", "model_fits")){ 
   
   # create output directories if they don't already exist
-  if(!dir.exists(script_output_dir)){dir.create(script_output_dir)}
-  if(!dir.exists(fit_output_dir)){dir.create(fit_output_dir)}
+  if(!dir.exists(script_output_dir)){dir.create(script_output_dir, recursive = TRUE)}
+  if(!dir.exists(fit_output_dir)){dir.create(fit_output_dir, recursive = TRUE)}
   
   # load info needed for all scripts
   setup <- 

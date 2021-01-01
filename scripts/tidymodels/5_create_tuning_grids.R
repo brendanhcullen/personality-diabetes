@@ -104,6 +104,8 @@ rf_spi_135_grid <- grid_regular(mtry() %>% range_set(c(1, length(spi_135_names))
 
 
 # Save tuning grids -------------------------------------------------------
+output_dir <- here("output", "tidymodels")
+if(!dir.exists(output_dir)){dir.create(output_dir, recursive = TRUE)}
 
 # put tuning grid into tibble as list column
 grid_names <- ls(pattern = "*_grid")

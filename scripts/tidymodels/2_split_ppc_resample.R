@@ -66,6 +66,8 @@ cv_folds <- vfold_cv(data_train_ppc,
                      strata = diabetes) # maintain diabetes proportions within each fold
 
 # Save data ---------------------------------------------------------------
+output_dir <- here("output", "tidymodels")
+if(!dir.exists(output_dir)){dir.create(output_dir, recursive = TRUE)}
 
 saveRDS(data_train_ppc, file = here("output", "tidymodels", "data_train_ppc.RDS"))
 saveRDS(data_test_ppc, file = here("output", "tidymodels", "data_test_ppc.RDS"))

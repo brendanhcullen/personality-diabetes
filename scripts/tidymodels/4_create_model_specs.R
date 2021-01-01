@@ -78,6 +78,9 @@ rf_spec <-
 
 # Save model specs --------------------------------------------------------
 
+output_dir <- here("output", "tidymodels")
+if(!dir.exists(output_dir)){dir.create(output_dir, recursive = TRUE)}
+
 # put model specs into a list
 model_specs <- list(multinom_spec = multinom_spec,
                     knn_spec = knn_spec,

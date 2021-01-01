@@ -60,6 +60,9 @@ rec_spi_135 <- recipe(diabetes ~ ., data = data_train_ppc) %>%
 
 # Save recipes ------------------------------------------------------------
 
+output_dir <- here("output", "tidymodels")
+if(!dir.exists(output_dir)){dir.create(output_dir, recursive = TRUE)}
+
 # put recipes into a list
 recipes <- list(rec_spi_5 = rec_spi_5,
                 rec_spi_27 = rec_spi_27,
